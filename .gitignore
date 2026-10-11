@@ -1,0 +1,24 @@
+# Datos (no subir)
+data/
+csv/
+
+# Entornos y secretos
+.env
+.env.*
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+
+# Python / Jupyter
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Archivos temporales / SO
+*.zip
+.DS_Store
+Thumbs.db
