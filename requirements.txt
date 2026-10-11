@@ -1,0 +1,15 @@
+﻿pandas
+numpy
+scikit-learn
+scipy
+statsmodels
+matplotlib
+seaborn
+networkx
+econml
+dowhy
+causal-learn
+lightgbm
+nbformat
+nbclient
+ipykernel
