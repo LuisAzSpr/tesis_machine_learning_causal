@@ -1,0 +1,33 @@
+\chapter{Discusión}\label{cap:discusion}
+
+\section{Interpretación económica}
+
+La estimación principal indica que, entre departamentos publicados con igual área, dormitorios, antigüedad y ubicación, uno con un baño adicional se ofrece en promedio un 5.3\,\% más caro. Para un alquiler mediano de S/\,2\,500 son unos S/\,133 al mes, con un intervalo de S/\,49 a S/\,220. Es una prima apreciable, pero muy lejana del 45\,\% que sugiere la comparación directa. Alrededor del 86\,\% de la diferencia bruta (en log-precio) de precio entre departamentos con distinto número de baños se explica por que los que tienen más baños son más grandes, más nuevos o están mejor ubicados.
+
+Esta magnitud debe leerse con tres cautelas. Primero, es una prima sobre el precio \emph{de oferta}: no informa cuánto se paga finalmente ni cuánto tarda en alquilarse el departamento. Segundo, es un promedio ponderado: refleja sobre todo los pasos de uno a dos y de dos a tres baños, donde se concentra la variación, y no debería extrapolarse a departamentos con cuatro o cinco. Tercero, no es una recomendación de inversión. El efecto sobre el precio pedido no dice si construir un baño adicional es rentable, porque no considera su costo ni el área que resta a otros ambientes. Como el área se mantiene fija, el contrafactual es ``el mismo departamento redistribuido con un baño más'', no ``el mismo departamento ampliado''.
+
+\section{Comparación con los antecedentes}
+
+El resultado es coherente con la evidencia hedónica local. \citet{mundaca2018} encuentran que el número de baños está entre las características más valoradas en el mercado de venta de Lima. Esta tesis agrega que, en el mercado de alquiler, una parte de esa valoración sobrevive a un ajuste flexible por los confusores observados y a una auditoría de los datos. Agrega también que su tamaño causal es menor que el sugerido por una regresión hedónica lineal. Esa diferencia, de 8.4\,\% a 5.3\,\%, no es un artefacto de esta muestra: la validación semisintética muestra que, con la estructura de covariables del mercado limeño, el hedónico lineal sobreestima el efecto incluso sin confusores omitidos, porque no absorbe la confusión no lineal por tamaño y ubicación. Es una advertencia práctica para los estudios que interpretan coeficientes hedónicos como precios implícitos.
+
+La comparación con los trabajos predictivos \citep{cacnahuaray2024,barrientos2026} es de naturaleza distinta. Esos modelos buscan predecir bien, y para ello les conviene incluir cualquier variable correlacionada con el precio. La grilla de especificaciones muestra por qué eso no sirve para inferencia causal: agregar el precio por m², una variable excelente para predecir, anula el efecto, y agregar baños por dormitorio lo vuelve errático. El resultado coincide con la advertencia de \citet{hunermund2023}: la flexibilidad del DML no protege contra malos controles, y la selección de covariables debe venir del modelo causal.
+
+En cuanto a la heterogeneidad, los resultados recomiendan prudencia. El efecto puntual en los distritos de mayor precio (clase1) es casi el doble que en los demás, pero la diferencia no es significativa. La simulación muestra además que, con este tamaño de muestra, una diferencia real de esa magnitud se detectaría solo una de cada cuatro veces. Esto concuerda con \citet{knaus2021}: en muestras moderadas, los efectos heterogéneos son difíciles de distinguir del ruido.
+
+\section{Por qué el efecto podría estar sesgado}
+
+El análisis de sensibilidad da la medida de la fragilidad. Para anular el efecto, un confusor omitido tendría que explicar a la vez el 7.5\,\% de la variación residual del número de baños y del precio, una vez descontados área, ubicación, antigüedad y dormitorios. El candidato natural es la calidad de la construcción y los acabados: edificios de mayor estándar tienden a tener más baños por departamento y a cobrar más. La evidencia no permite descartar un confusor así. Uno tan fuerte como la antigüedad no anularía el efecto, pero uno con la influencia de la ubicación sobre el precio sí haría que el IC incluyera el cero. La validación semisintética confirma que la cota de sensibilidad es fiel cuando se conoce la fuerza del confusor, así que el problema no es la herramienta, sino que esa fuerza es desconocida.
+
+Dos elementos atenúan esta preocupación. Primero, el confusor tendría que estar correlacionado con el número de baños \emph{dentro} de departamentos de igual área, dormitorios, antigüedad y ubicación, lo que excluye la parte de la calidad que ya se refleja en esas variables. Segundo, la especificación que excluye las coordenadas aproximadas, que es la de mejor medición de la ubicación, da un efecto de 4.2\,\%, cercano al principal. Aun así, la conclusión prudente es que el efecto es \emph{positivo bajo los supuestos del DAG} y que su magnitud podría estar sobreestimada si la calidad no observada está asociada al número de baños.
+
+\section{Amenazas a la validez y alcance}
+
+\paragraph{Validez interna.} Además de los confusores no observados, persisten el error de medición del tratamiento (el portal no distingue medios baños), la antigüedad faltante en un cuarto de la muestra y la autocorrelación espacial residual del precio, que señala factores de entorno no capturados. Esta última no sesga el efecto, en la medida en que no esté relacionada con el número de baños (los residuos del tratamiento no muestran autocorrelación). Sí obliga a usar inferencia agrupada.
+
+\paragraph{Validez externa.} La población es la de los avisos de un portal en 13 distritos durante un mes. No se observan los departamentos que se alquilan sin publicarse, los de otros portales ni los de distritos periféricos. Tampoco se sabe si la prima de oferta se traslada al precio de contrato.
+
+\paragraph{Validez de la medición.} La deduplicación es heurística. Los casos D2, misma ubicación y mismos atributos con texto distinto, podrían ser unidades idénticas de un mismo edificio. La especificación sin deduplicar da un efecto similar (4.3\,\%), de modo que la conclusión no depende de esa decisión.
+
+\section{Alcance de las aplicaciones}
+
+El resultado sirve como referencia cuantitativa, con su incertidumbre y su fragilidad declaradas, para la tasación de alquileres y para entender cómo el mercado valora la distribución interna de un departamento. No justifica afirmar que agregar un baño a un departamento existente aumentará su renta en un 5.3\,\%, porque esa intervención física implica costos y cambios no representados en los datos. Tampoco autoriza recomendaciones diferenciadas por distrito.

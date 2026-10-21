@@ -1,0 +1,17 @@
+% Generado por notebook2_auditoria.ipynb -> R1_exclusiones.csv
+\begin{tabular}{rrrr}
+\toprule
+paso & N restante & excluidos & \% del crudo \\
+\midrule
+Archivo crudo del scraping & 3,739 & 0 & 100.0 \\
+Sin dormitorios/baños/área/precio/distrito & 3,516 & 223 & 94.0 \\
+Duplicados D1 (re-publicación) & 3,350 & 166 & 89.6 \\
+Duplicados D2 (publicación cruzada) & 3,273 & 77 & 87.5 \\
+G1 geocodificación incoherente (>8 km del distrito) & 3,247 & 26 & 86.8 \\
+F1 rangos (dorm>6, área>600, precio/m2 fuera de [8,120]) & 3,117 & 130 & 83.4 \\
+F2 área incoherente (<=2 dorm, 1 baño, >=160 m2) & 3,116 & 1 & 83.3 \\
+F4 precio < 600 & 3,065 & 51 & 82.0 \\
+F5 combinación dorm-baños rara (<=3 casos) & 3,049 & 16 & 81.5 \\
+F6 precio/m2 atípico en su distrito & 3,028 & 21 & 81.0 \\
+\bottomrule
+\end{tabular}

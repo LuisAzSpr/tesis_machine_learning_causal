@@ -1,0 +1,262 @@
+% Presentación para la sustentación (14 diapositivas, ~15 minutos). Compilar: ./tectonic.exe presentacion.tex
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{fontspec}
+\usepackage[spanish,es-nodecimaldot,es-noshorthands]{babel}
+\usepackage{booktabs}
+\graphicspath{{../notebooks/resultados/figuras/}}
+
+\definecolor{azul}{HTML}{1F3A5F}
+\definecolor{rojo}{HTML}{C0392B}
+\definecolor{gris}{HTML}{6B7280}
+\setbeamercolor{frametitle}{fg=azul}
+\setbeamercolor{title}{fg=azul}
+\setbeamercolor{structure}{fg=azul}
+\setbeamerfont{frametitle}{series=\bfseries,size=\Large}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}{\hfill{\scriptsize\color{gris}\insertframenumber/\inserttotalframenumber}\hspace{1em}\vspace{0.6em}}
+\setbeamertemplate{itemize items}[circle]
+\newcommand{\dato}[2]{\begin{minipage}[t]{0.42\linewidth}\centering{\Huge\bfseries\color{azul}#1}\\[2pt]{\small #2}\end{minipage}}
+
+\title{Efecto causal de un baño adicional en el precio de oferta de alquiler en Lima Metropolitana}
+\subtitle{Inferencia causal espacial asistida por aprendizaje automático}
+\author{Luis Azaña}
+\institute{Seminario de Tesis 2}
+\date{2026}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+% 2 -----------------------------------------------------------------
+\begin{frame}{Problema: la correlación no responde la pregunta}
+\begin{columns}[T]
+\column{0.55\textwidth}
+\begin{itemize}
+\item Pregunta contrafactual: \textbf{¿cuánto cambiaría el alquiler si el mismo departamento tuviera un baño más?}
+\item Los departamentos con más baños son también más grandes, más nuevos y mejor ubicados.
+\item Los estudios locales \textbf{predicen} precios (hedónico, XGBoost); no identifican efectos.
+\item ML flexible $\neq$ causalidad: hace falta un modelo causal explícito.
+\end{itemize}
+\column{0.42\textwidth}
+\vspace{0.8cm}
+\begin{center}
+\dato{+45\%}{asociación\\sin ajustar}\hspace{0.5em}\dato{?}{efecto\\causal}
+\end{center}
+\end{columns}
+\end{frame}
+
+% 3 -----------------------------------------------------------------
+\begin{frame}{Alcance, objetivos e hipótesis}
+\begin{columns}[T]
+\column{0.5\textwidth}
+\textbf{Alcance}
+\begin{itemize}\small
+\item Precio \emph{de oferta} mensual, no contrato.
+\item Avisos de un portal, 13 distritos, marzo 2025.
+\item Tratamiento: nº de baños (1--5). Resultado: log(precio).
+\end{itemize}
+\textbf{Objetivos}
+\begin{itemize}\small
+\item OE1 auditoría · OE2 identificación · OE3 estimación
+\item OE4 heterogeneidad y sensibilidad · OE6 simulación · OE7 trazabilidad
+\item OE5 (IA sobre el texto): \textcolor{gris}{diferido}
+\end{itemize}
+\column{0.47\textwidth}
+\textbf{Hipótesis} (sin dirección obligatoria)
+\begin{itemize}\small
+\item H1: el ajuste cambia la asociación.
+\item H2: la composición causal de los controles importa más que el algoritmo.
+\item H3: hay heterogeneidad, solo si la precisión la respalda.
+\item H4: la solidez depende de la fuerza de los confusores no observados.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+% 4 -----------------------------------------------------------------
+\begin{frame}{Datos: auditoría de la muestra (R1)}
+\begin{columns}[T]
+\column{0.42\textwidth}
+\small
+\begin{tabular}{lr}
+\toprule
+Paso & N \\
+\midrule
+Archivo crudo & 3\,739 \\
+Variables núcleo completas & 3\,516 \\
+\textbf{$-$ duplicados} (83 en 2 distritos) & $-$243 \\
+\textbf{$-$ geocodificación incoherente} & $-$26 \\
+$-$ reglas de depuración F1--F6 & $-$219 \\
+\midrule
+\textbf{Muestra analítica} & \textbf{3\,028} \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4cm}
+\begin{itemize}\footnotesize
+\item 2\,178 edificios (37\,\% de avisos comparte edificio).
+\item Antigüedad faltante: 25\,\% (0\,\% en Miraflores, 47\,\% en Cercado).
+\end{itemize}
+\column{0.56\textwidth}
+\includegraphics[width=\textwidth]{F2_territorio.png}
+\end{columns}
+\end{frame}
+
+% 5 -----------------------------------------------------------------
+\begin{frame}{Intervención, estimando y DAG}
+\begin{columns}[T]
+\column{0.62\textwidth}
+\includegraphics[width=\textwidth]{F1_dag.png}
+\column{0.36\textwidth}\small
+\[Y=\theta\,T+g(X)+\varepsilon\]
+\begin{itemize}
+\item $\theta$: efecto de \textbf{un baño más} con área, dormitorios, antigüedad y ubicación fijos.
+\item \textbf{Ajustar}: confusores previos (azul).
+\item \textbf{No ajustar}: precio/m² (descendiente de $Y$), baños/dormitorio (contiene $T$).
+\item \textbf{Amenaza}: calidad no observada $U$.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+% 6 -----------------------------------------------------------------
+\begin{frame}{Método: Double ML con dependencia espacial}
+\begin{enumerate}
+\item Predecir el precio y los baños a partir de los confusores con \textit{gradient boosting} (relaciones no lineales).
+\item \textit{Cross-fitting}: cada aviso se predice con modelos entrenados \textbf{sin su edificio} (5 folds agrupados $\times$ 10 repeticiones).
+\item Residuos: $\tilde Y=Y-\hat E[Y|X]$, \ $\tilde T=T-\hat E[T|X]$.
+\item Efecto: pendiente de $\tilde Y$ sobre $\tilde T$.
+\item Inferencia \textbf{agrupada por edificio} (alternativa: bloques de 1 km).
+\end{enumerate}
+\vspace{0.3cm}
+\small Además: grilla preespecificada de controles, sensibilidad a confusores omitidos, efectos por grupos (GATE), I de Moran y validación semisintética.
+\end{frame}
+
+% 7 -----------------------------------------------------------------
+\begin{frame}{Resultado principal (R3)}
+\begin{columns}[c]
+\column{0.38\textwidth}
+\begin{center}
+{\Huge\bfseries\color{azul} +5.3\%}\\[4pt]
+{\small por baño adicional}\\[2pt]
+{\small IC 95\,\%: 1.9 -- 8.8\,\%}\\[10pt]
+{\Large\bfseries\color{azul} $\approx$ S/ 133}\\[2pt]
+{\small al mes (alquiler de S/ 2\,500)}
+\end{center}
+\column{0.6\textwidth}
+\includegraphics[width=\textwidth]{F4_estimadores.png}
+\end{columns}
+\vspace{0.2cm}
+\footnotesize Sin ajustar: 45.1\,\% $\rightarrow$ hedónico lineal: 8.4\,\% $\rightarrow$ DML: 5.3\,\%. Los tres \textit{learners} de árboles coinciden (5.2--5.8\,\%). \textbf{H1 se confirma.}
+\end{frame}
+
+% 8 -----------------------------------------------------------------
+\begin{frame}{¿Qué controles? La grilla de especificaciones (R4)}
+\begin{columns}[c]
+\column{0.6\textwidth}
+\includegraphics[width=\textwidth]{F4b_especificaciones.png}
+\column{0.38\textwidth}\small
+\begin{itemize}
+\item Sin área: \textbf{20.4\,\%} (se cuadruplica).
+\item + precio/m²: \textbf{$\approx$ 0} (control inadmisible).
+\item + baños/dormitorio: errático.
+\item Sin deduplicar, filtro mínimo, sin geocodificación aproximada, otras particiones: \textbf{4.2--5.8\,\%}.
+\end{itemize}
+\textbf{H2 se confirma}: la composición causal importa más que el algoritmo.
+\end{columns}
+\end{frame}
+
+% 9 -----------------------------------------------------------------
+\begin{frame}{Robustez a confusores no observados (R5)}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\includegraphics[width=\textwidth]{F5_sensibilidad.png}
+\column{0.48\textwidth}\small
+\begin{itemize}
+\item \textbf{RV = 0.075}: un $U$ que explique el 7.5\,\% de la varianza residual de los baños \emph{y} del precio anula el efecto.
+\item $U$ tan fuerte como la \textbf{antigüedad} $\rightarrow$ 3.6\,\% (sigue siendo $>0$).
+\item $U$ tan fuerte como la \textbf{ubicación} $\rightarrow$ 2.5\,\% (el IC incluye 0).
+\item $U$ tan fuerte como el \textbf{área} $\rightarrow$ cambia de signo.
+\end{itemize}
+\textbf{H4 se confirma}: fragilidad \textbf{moderada}.
+\end{columns}
+\end{frame}
+
+% 10 ----------------------------------------------------------------
+\begin{frame}{Heterogeneidad y dependencia espacial (R7)}
+\centering\includegraphics[height=0.5\textheight]{F7_heterogeneidad.png}\par
+\small
+\begin{itemize}
+\item Sin diferencias significativas por clase de distrito ni por tamaño (Wald $p>0.6$) $\rightarrow$ \textbf{H3 sin respaldo} (no concluyente: baja potencia).
+\item Residuos del precio con autocorrelación espacial (I de Moran = 0.06, $p=0.001$): EE agrupados 31--39\,\% mayores que los iid; el IC sigue excluyendo el 0.
+\end{itemize}
+\end{frame}
+
+% 11 ----------------------------------------------------------------
+\begin{frame}{Validación semisintética: ¿funciona con verdad conocida? (R6)}
+\centering\includegraphics[height=0.5\textheight]{F6_semisintetico.png}\par
+\footnotesize
+\begin{itemize}
+\item Covariables reales, $\theta_0=0.05$, 600 réplicas. \textbf{Sin $U$}: DML insesgado y cobertura 95\,\%; el hedónico lineal se sesga (+0.025; cobertura 50\,\%).
+\item \textbf{Con $U$}: el DML se sesga y el IC no lo detecta; la \textbf{cota de sensibilidad sí} recupera la cobertura (92--96\,\%).
+\item Heterogeneidad real ($0.03$ vs $0.08$) detectada solo el 24\,\% de las veces. Dependencia espacial: hay que agrupar al nivel correcto.
+\end{itemize}
+\end{frame}
+
+% 12 ----------------------------------------------------------------
+\begin{frame}{Medición con IA (OE5) y límites}
+\begin{columns}[T]
+\column{0.48\textwidth}
+\textbf{OE5: diferido, con diseño listo}
+\begin{itemize}\small
+\item El texto de los avisos menciona vista, ascensor, acabados\ldots: \textit{proxies} de la calidad $U$.
+\item Requiere: taxonomía, 200--300 avisos etiquetados a mano, precisión/\textit{recall}, posición causal en el DAG.
+\item Especificación S5 reservada.
+\end{itemize}
+\column{0.48\textwidth}
+\textbf{Límites}
+\begin{itemize}\small
+\item Ignorabilidad: se acota, no se prueba.
+\item Un portal, un mes, precio de oferta.
+\item Antigüedad faltante en el 25\,\%.
+\item Efecto lineal por baño; sin diagnóstico formal de soporte común.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+% 13 ----------------------------------------------------------------
+\begin{frame}{Conclusiones}
+\begin{itemize}
+\item \textbf{Respuesta}: bajo los supuestos del DAG, un baño adicional eleva el precio de oferta en \textbf{5.3\,\%} (1.9--8.8\,\%), unos S/\,133 al mes.
+\item \textbf{Hallazgo observacional}: el 86\,\% de la asociación bruta se explica por tamaño, antigüedad y ubicación.
+\item \textbf{Metodológico}: el hedónico lineal sobreestima incluso sin confusión omitida; los malos controles destruyen la estimación.
+\item \textbf{Fragilidad}: moderada; resiste un confusor como la antigüedad, no como la ubicación.
+\item \textbf{No se afirma}: que construir un baño sea rentable, ni que el efecto valga para contratos o para toda Lima.
+\end{itemize}
+\end{frame}
+
+% 14 ----------------------------------------------------------------
+\begin{frame}{Contribución y continuidad}
+\begin{columns}[T]
+\column{0.48\textwidth}
+\textbf{Contribución verificable}
+\begin{itemize}\small
+\item Auditoría reproducible (duplicados entre distritos, geocodificación).
+\item Efecto con identificación explícita e inferencia agrupada.
+\item Demostración empírica de buenos y malos controles.
+\item Sensibilidad calibrada y validada con simulación.
+\end{itemize}
+\column{0.48\textwidth}
+\textbf{Siguiente entregable}
+\begin{itemize}\small
+\item OE5: \textit{proxies} de calidad desde el texto (S5).
+\item Tratamiento binario (cochera) con DML-IRM y soporte común.
+\item Repositorio con una orden reproducible y pruebas.
+\item Más meses y portales para estudiar la heterogeneidad.
+\end{itemize}
+\end{columns}
+\vspace{0.6cm}
+\begin{center}\Large\color{azul}\textbf{¡Gracias!}\end{center}
+\end{frame}
+
+\end{document}

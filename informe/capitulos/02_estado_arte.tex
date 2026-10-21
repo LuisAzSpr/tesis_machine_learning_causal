@@ -1,0 +1,67 @@
+\chapter{Antecedentes y estado del arte}\label{cap:estado}
+
+Este capítulo resume una revisión focalizada, no una revisión sistemática PRISMA. Las cadenas de búsqueda, las fuentes y los criterios de inclusión están en el anexo~\ref{anx:busqueda}. La revisión cubre cinco frentes: (i) la teoría hedónica y su evidencia sobre baños, (ii) los estudios del mercado limeño, (iii) el aprendizaje automático aplicado a precios de vivienda, (iv) la identificación causal en mercados inmobiliarios y (v) los métodos de ML causal, robustez y dependencia espacial que usa la tesis.
+
+\section{Precios hedónicos: el baño como atributo valorado}
+
+\citet{rosen1974} formalizó la idea de que el precio de un bien diferenciado es una función de sus atributos y de que, en equilibrio, la derivada de esa función respecto de un atributo es su precio implícito marginal. El modelo hedónico se convirtió en la herramienta estándar para índices de precios y para valorar atributos de la vivienda \citep{malpezzi2003}. La revisión de \citet{sirmans2005} sobre más de cien estudios hedónicos muestra que el número de baños es una de las características incluidas con más frecuencia y que su coeficiente suele ser positivo y significativo. También muestra que su magnitud varía mucho entre estudios según qué otras variables se controlen, en particular el área.
+
+Ese último punto es central para esta tesis. El coeficiente hedónico es un precio implícito \emph{condicional a la especificación}. Si el modelo omite atributos que determinan a la vez el número de baños y el precio, el coeficiente mezcla el valor del baño con el de esos atributos. Si incluye variables que son consecuencia del precio, se sesga en otra dirección. La teoría hedónica no dice qué variables incluir; esa decisión requiere un modelo causal.
+
+\section{Evidencia para Lima}
+
+\citet{mundaca2018} construyen un índice hedónico de precios de departamentos en venta para Lima Metropolitana con datos del BCRP y tres variantes metodológicas (variables binarias de tiempo, características e imputación). Según su resumen, el número de cocheras y el número de baños están entre las características con mayor valoración por los compradores. Es la referencia local más cercana a la pregunta de esta tesis. Sin embargo, su objetivo es construir un índice, no identificar el efecto causal de un atributo, y trabaja con precios de venta y no de alquiler.
+
+\citet{rivera2018} estudia los determinantes del precio por metro cuadrado de departamentos en Lima Metropolitana entre 2005 y 2017. Al usar el precio por metro cuadrado como variable dependiente, la pregunta es distinta: en el marco causal de esta tesis, el precio por metro cuadrado es una transformación del resultado (capítulo~\ref{cap:marco}).
+
+\section{Aprendizaje automático para predecir precios}
+
+La línea más activa en el ámbito local es la predicción. \citet{cacnahuaray2024} desarrollan un modelo predictivo de precios de alquiler de departamentos en la provincia de Lima con técnicas de aprendizaje automático. \citet{barrientos2026} comparan un árbol de decisión y XGBoost con la regresión hedónica sobre más de 40\,000 registros del BCRP (2014--2024). XGBoost obtiene el mejor desempeño, y los autores identifican el tamaño, la cochera y la ubicación como determinantes principales. En Santiago de Chile, \citet{tapia2025} comparan modelos automáticos de valuación con ML y modelos hedónicos con ajuste espacial. \citet{gyger2026} proponen un modelo híbrido de proceso gaussiano espacial con \textit{tree boosting} para el modelamiento hedónico de alquileres en Alemania. Con técnicas de explicabilidad estudian los efectos no lineales de la ubicación y muestran la importancia de modelar la correlación espacial.
+
+Estos trabajos responden a ``¿cuánto costará este departamento?'' y no a ``¿cuánto cambiaría su precio si tuviera un baño más?''. Las importancias de variables o los valores SHAP de un modelo predictivo describen cómo usa el modelo cada variable, no el efecto de intervenirla. Una variable muy importante para predecir puede no tener ningún efecto causal, y viceversa.
+
+\section{Identificación causal en mercados de vivienda}
+
+La economía urbana tiene una larga tradición de estimar el valor de amenidades con diseños cuasiexperimentales. \citet{black1999} compara viviendas a ambos lados de las fronteras de zonas escolares para aislar el valor de la calidad educativa. \citet{chay2005} usan cambios en la calidad del aire inducidos por regulación. \citet{keele2015} formalizan las fronteras geográficas como discontinuidades de regresión. Estos diseños requieren una fuente de variación casi aleatoria del tratamiento, algo que no existe para el número de baños de un departamento.
+
+Cuando no hay cuasiexperimento, la alternativa es el ajuste por confusores observados bajo el supuesto de ignorabilidad condicional, con un análisis de sensibilidad que acote el sesgo por confusores omitidos. Recientemente, \citet{chen2026} compararon regresiones hedónicas y estimadores de ML causal (incluido un \textit{causal forest} con diferencias en diferencias) mediante una simulación Monte Carlo empírica sobre más de un millón de transacciones. Encuentran que el desempeño relativo depende del escenario y del tamaño de muestra, lo que respalda validar los estimadores con datos semisintéticos antes de interpretarlos.
+
+\section{Métodos de aprendizaje causal y robustez}
+
+\paragraph{Double/Debiased ML.} \citet{chernozhukov2018} muestran que, si se estiman las funciones auxiliares $E[Y\mid X]$ y $E[T\mid X]$ con aprendizaje automático, se ortogonaliza el problema (se trabaja con residuos, como en el teorema de Frisch--Waugh--Lovell) y se usa \textit{cross-fitting}, el parámetro de interés es consistente y asintóticamente normal aunque las funciones auxiliares converjan lentamente. El modelo parcialmente lineal que se usa aquí se remonta a \citet{robinson1988}. \citet{bach2022} implementan el marco en la biblioteca DoubleML.
+
+\paragraph{Buenos y malos controles.} \citet{cinelli2024} sistematizan qué variables deben incluirse para identificar un efecto y cuáles lo sesgan: mediadores, colisionadores y descendientes del resultado. \citet{hunermund2023} muestran que DML es muy sensible a la inclusión de unos pocos malos controles y que la selección automática de covariables no resuelve el problema. Ambos trabajos motivan la grilla de especificaciones de esta tesis.
+
+\paragraph{Heterogeneidad.} \citet{wager2018} y \citet{athey2019} desarrollan los bosques causales para estimar efectos condicionales con inferencia válida. \citet{knaus2021} evalúan estimadores de efectos heterogéneos mediante Monte Carlo empírico y muestran que su desempeño depende mucho del contexto. Por ello esta tesis prioriza efectos por grupos preespecificados (GATE) y reporta el CATE individual solo como exploración.
+
+\paragraph{Sensibilidad a confusores omitidos.} \citet{cinelli2020} reformulan el sesgo por variable omitida en términos de $R^2$ parciales e introducen el valor de robustez. \citet{chernozhukov2022} extienden esa idea a los estimadores de ML causal y derivan cotas de sesgo para DML que se calibran con confusores observados. Esa es la herramienta principal del capítulo de robustez. Como referencia complementaria se reporta el \textit{E-value} de \citet{vanderweele2017}.
+
+\paragraph{Dependencia espacial e inferencia.} Los avisos de un mismo edificio o barrio comparten choques no observados. El índice de \citet{moran1950} permite detectar autocorrelación espacial en los residuos. La inferencia robusta a clusters \citep{cameron2015} corrige los errores estándar cuando las observaciones de un mismo grupo están correlacionadas.
+
+\paragraph{Validación semisintética.} \citet{advani2019} advierten que las simulaciones genéricas pueden ser engañosas para elegir estimadores y recomiendan simulaciones ancladas en los datos reales (Monte Carlo empírico), como hacen \citet{knaus2021} y \citet{chen2026}. La validación de esta tesis sigue ese principio: conserva las covariables reales y simula solo el tratamiento y el resultado.
+
+\section{Síntesis y brecha}
+
+La tabla~\ref{tab:comparativo} compara los antecedentes por tratamiento, estrategia de identificación y método.
+
+\begin{table}[H]
+\centering\small
+\caption{Cuadro comparativo de antecedentes}\label{tab:comparativo}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.6cm}}
+\toprule
+Trabajo & Objeto / datos & Identificación del efecto de un atributo & Método \\
+\midrule
+\citet{mundaca2018} & Venta, Lima (BCRP) & No: precio implícito condicional a la especificación & Regresión hedónica \\
+\citet{rivera2018} & Venta, Lima, 2005--2017 & No: determinantes del precio/m² & Regresión \\
+\citet{cacnahuaray2024} & Alquiler, Lima & No: predicción & ML predictivo \\
+\citet{barrientos2026} & Venta, Lima (BCRP) & No: predicción e importancias & Árbol, XGBoost, hedónico \\
+\citet{tapia2025} & Venta, Santiago & No: valuación automática & ML y hedónico espacial \\
+\citet{gyger2026} & Alquiler, Alemania & No: predicción explicable & GP espacial + boosting \\
+\citet{black1999}; \citet{keele2015} & Venta, EE.\,UU. & Sí: discontinuidad geográfica & RDD \\
+\citet{chen2026} & Venta, Nueva York & Sí: diferencias en diferencias & Hedónico vs. ML causal (Monte Carlo empírico) \\
+\textbf{Esta tesis} & \textbf{Alquiler, Lima, 13 distritos} & \textbf{Sí: ajuste por DAG + sensibilidad calibrada} & \textbf{DML con inferencia agrupada y validación semisintética} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+En la búsqueda realizada no se encontraron estudios sobre Lima que estimen el efecto de un atributo de la vivienda con una estrategia de identificación explícita (DAG, conjunto de ajuste justificado, análisis de sensibilidad y validación con verdad conocida). La búsqueda no fue exhaustiva, de modo que esta afirmación se limita a las fuentes consultadas (anexo~\ref{anx:busqueda}). La novedad de la tesis no es el algoritmo, sino aplicar con rigor un protocolo causal a un mercado local poco estudiado con estas herramientas y medir con honestidad su fragilidad.

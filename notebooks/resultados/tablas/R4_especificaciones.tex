@@ -1,0 +1,22 @@
+% Generado por notebook3_estimacion_causal.ipynb -> R4_especificaciones.csv
+\begin{tabular}{rrrrrrrrr}
+\toprule
+código & especificación & tipo & N & theta & EE & IC95 inf & IC95 sup & \% por baño \\
+\midrule
+S1 & Principal (conjunto del DAG) & válida & 3,028.000 & 0.050 & 0.016 & 0.018 & 0.082 & 5.101 \\
+S2 & Sin área & omite confusor & 3,028.000 & 0.186 & 0.014 & 0.158 & 0.213 & 20.393 \\
+S3 & Sin ubicación (distrito, lat, lon) & omite confusor & 3,028.000 & 0.081 & 0.016 & 0.049 & 0.112 & 8.412 \\
+S4 & Sin antigüedad & omite confusor & 3,028.000 & 0.066 & 0.016 & 0.035 & 0.097 & 6.800 \\
+S4b & Sin dormitorios (efecto 'paquete') & variante del DAG & 3,028.000 & 0.053 & 0.016 & 0.021 & 0.084 & 5.405 \\
+S5 & S1 + proxy textual validado & no ejecutada (OE5 diferido) &  &  &  &  &  &  \\
+S6a & + precio/m² (descendiente de Y) & control inadmisible & 3,028.000 & -0.001 & 0.002 & -0.005 & 0.002 & -0.133 \\
+S6b & + baños/dormitorio (función de T) & control inadmisible & 3,028.000 & -0.915 & 0.612 & -2.115 & 0.284 & -59.951 \\
+S7a & Sin tipo de geocodificación & artefacto de medición & 3,028.000 & 0.047 & 0.016 & 0.016 & 0.078 & 4.840 \\
+S7b & + precisión de geocodificación & artefacto de medición & 3,028.000 & 0.044 & 0.015 & 0.015 & 0.073 & 4.514 \\
+D1 & Sin deduplicar & depuración & 3,248.000 & 0.042 & 0.016 & 0.012 & 0.073 & 4.334 \\
+D2 & Filtro mínimo (sin reglas de precio/m²) & depuración & 3,243.000 & 0.056 & 0.020 & 0.016 & 0.096 & 5.795 \\
+D3 & Sin geocodificación APPROXIMATE & depuración & 2,508.000 & 0.041 & 0.011 & 0.020 & 0.062 & 4.151 \\
+P1 & Folds y EE por bloque espacial de 1 km & partición & 3,028.000 & 0.055 & 0.016 & 0.023 & 0.087 & 5.682 \\
+P2 & Folds aleatorios (sin agrupar), EE iid & partición & 3,028.000 & 0.047 & 0.012 & 0.023 & 0.070 & 4.783 \\
+\bottomrule
+\end{tabular}

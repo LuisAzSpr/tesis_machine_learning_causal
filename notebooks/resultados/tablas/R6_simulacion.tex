@@ -1,0 +1,26 @@
+% Generado por notebook4_semisintetico.ipynb -> R6_simulacion.csv
+\begin{tabular}{rrrrrrrrrr}
+\toprule
+escenario & estimador & verdad & media theta & sesgo & RMSE & cobertura EE edificio & cobertura EE iid & cobertura EE celda & long. media IC \\
+\midrule
+E1 Sin U (efecto homogéneo) & OLS sin ajustar & 0.050 & 0.337 & 0.287 & 0.287 & 0.000 &  &  & 0.054 \\
+E1 Sin U (efecto homogéneo) & Hedónico OLS (S1) & 0.050 & 0.075 & 0.025 & 0.028 & 50.000 &  &  & 0.049 \\
+E1 Sin U (efecto homogéneo) & DML PLR (S1) & 0.050 & 0.049 & -0.001 & 0.013 & 95.000 & 95.000 & 94.000 & 0.047 \\
+E1 Sin U (efecto homogéneo) & DML + precio/m² (inadmisible) & 0.050 & 0.000 & -0.050 & 0.050 & 0.000 & 0.000 &  & 0.006 \\
+E2 U débil (R² ≈ 0,02) & OLS sin ajustar & 0.050 & 0.342 & 0.292 & 0.292 & 0.000 &  &  & 0.054 \\
+E2 U débil (R² ≈ 0,02) & Hedónico OLS (S1) & 0.050 & 0.085 & 0.035 & 0.038 & 24.000 &  &  & 0.049 \\
+E2 U débil (R² ≈ 0,02) & DML PLR (S1) & 0.050 & 0.059 & 0.009 & 0.016 & 84.000 & 83.000 & 85.000 & 0.047 \\
+E3 U moderado (R² ≈ 0,07) & OLS sin ajustar & 0.050 & 0.354 & 0.304 & 0.304 & 0.000 &  &  & 0.053 \\
+E3 U moderado (R² ≈ 0,07) & Hedónico OLS (S1) & 0.050 & 0.108 & 0.058 & 0.059 & 1.000 &  &  & 0.049 \\
+E3 U moderado (R² ≈ 0,07) & DML PLR (S1) & 0.050 & 0.083 & 0.033 & 0.036 & 22.000 & 22.000 & 23.000 & 0.047 \\
+E4 U fuerte (R² ≈ 0,15) & OLS sin ajustar & 0.050 & 0.373 & 0.323 & 0.323 & 0.000 &  &  & 0.052 \\
+E4 U fuerte (R² ≈ 0,15) & Hedónico OLS (S1) & 0.050 & 0.146 & 0.096 & 0.096 & 0.000 &  &  & 0.049 \\
+E4 U fuerte (R² ≈ 0,15) & DML PLR (S1) & 0.050 & 0.123 & 0.073 & 0.074 & 0.000 & 0.000 & 0.000 & 0.047 \\
+E5 Efecto heterogéneo por clase & OLS sin ajustar & 0.050 & 0.332 & 0.282 & 0.282 & 0.000 &  &  & 0.052 \\
+E5 Efecto heterogéneo por clase & Hedónico OLS (S1) & 0.050 & 0.075 & 0.025 & 0.028 & 51.000 &  &  & 0.050 \\
+E5 Efecto heterogéneo por clase & DML PLR (S1) & 0.050 & 0.050 & -0.001 & 0.013 & 95.000 & 96.000 & 95.000 & 0.047 \\
+E6 Dependencia espacial (bloques 1 km) & OLS sin ajustar & 0.050 & 0.311 & 0.261 & 0.262 & 0.000 &  &  & 0.064 \\
+E6 Dependencia espacial (bloques 1 km) & Hedónico OLS (S1) & 0.050 & 0.071 & 0.021 & 0.028 & 64.000 &  &  & 0.053 \\
+E6 Dependencia espacial (bloques 1 km) & DML PLR (S1) & 0.050 & 0.047 & -0.003 & 0.018 & 88.000 & 81.000 & 94.000 & 0.056 \\
+\bottomrule
+\end{tabular}

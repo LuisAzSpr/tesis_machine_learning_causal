@@ -1,0 +1,4 @@
+indicador,valor
+RV (θ → 0),0.07529156719758272
+RV_α (límite inferior IC → 0),0.028726496251185365
+"E-value (VanderWeele-Ding, escala d = θ/DE(Y))",1.40224218680709

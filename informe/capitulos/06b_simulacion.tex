@@ -1,0 +1,39 @@
+La tabla~\ref{tab:sim} y la figura~\ref{fig:sim} resumen las 600 réplicas (100 por escenario) del diseño de la sección~\ref{sec:semisint}.
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Validación semisintética: sesgo, RMSE y cobertura del IC 95\,\% (\%) por escenario y estimador (R6)}\label{tab:sim}
+\resizebox{\textwidth}{!}{\input{tablas/t_sim}}
+\origen{\texttt{notebook4\_semisintetico.ipynb} $\rightarrow$ \texttt{R6\_simulacion.csv}. 100 réplicas por escenario; N = 3\,028 por réplica. En E5 el estimando verdadero es 0.0503.}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{F6_semisintetico.png}
+\caption{Validación semisintética (F6). Izquierda: error de estimación por escenario. Derecha: cobertura del IC 95\,\% del DML según el tipo de error estándar (línea roja: 95\,\% nominal).}\label{fig:sim}
+\origen{\texttt{notebook4\_semisintetico.ipynb} $\rightarrow$ \texttt{F6\_semisintetico.png}.}
+\end{figure}
+
+\paragraph{Sin confusión omitida, DML recupera el efecto (E1).} El DML tiene un sesgo prácticamente nulo ($-0.001$), un RMSE de 0.013 y una cobertura del 95\,\%, igual a la nominal. El hedónico OLS, en cambio, sobreestima el efecto en 0.025 (la mitad del efecto verdadero) y su IC cubre la verdad solo en el 50\,\% de las réplicas, \emph{aunque no hay ningún confusor omitido}. La razón es que la confusión observada es no lineal y la regresión lineal no la absorbe. Este resultado replica en un entorno controlado el patrón de los datos reales (8.4\,\% del hedónico frente a 5.3\,\% del DML) y respalda que esa diferencia se deba a la forma funcional. Agregar el control inadmisible precio/m² lleva el efecto a cero en todas las réplicas, con una cobertura del 0\,\%.
+
+\paragraph{Con confusión omitida, DML se sesga y el IC no lo advierte (E2--E4).} Cuando existe un $U$ que afecta a los baños y al precio, el DML hereda un sesgo creciente con su fuerza: 0.009 (débil), 0.033 (moderado) y 0.073 (fuerte). La cobertura cae a 84\,\%, 22\,\% y 0\,\%. Es la demostración empírica de que ningún estimador, por flexible que sea, corrige la confusión no observada.
+
+\begin{table}[H]
+\centering\small
+\caption{Calibración de la cota de sensibilidad con el confusor plantado}\label{tab:sim_sens}
+\resizebox{\textwidth}{!}{\input{tablas/t_sim_sens}}
+\origen{\texttt{notebook4\_semisintetico.ipynb} $\rightarrow$ \texttt{R6\_sensibilidad\_calibracion.csv}.}
+\end{table}
+
+\paragraph{La cota de sensibilidad funciona (E2--E4).} La tabla~\ref{tab:sim_sens} evalúa, en cada réplica, la cota~\eqref{eq:cota} con la fuerza \emph{real} de $U$. La cota media (0.010, 0.033 y 0.071) coincide casi exactamente con el sesgo medio del DML (0.009, 0.033 y 0.073). El intervalo ampliado con la cota contiene el efecto verdadero en el 96\,\%, 96\,\% y 92\,\% de las réplicas, frente al 84\,\%, 22\,\% y 0\,\% del IC estándar. La herramienta usada en la sección R5 es, por tanto, informativa en este mercado: si se conociera la fuerza del confusor omitido, la cota corregiría el sesgo. Cabe notar que, por el redondeo del número de baños, la fuerza realizada de $U$ es menor que la planteada ($R^2\approx0.01$--$0.09$ con $T$).
+
+\begin{table}[H]
+\centering\small
+\caption{Recuperación de efectos heterogéneos (escenario E5)}\label{tab:sim_gate}
+\resizebox{\textwidth}{!}{\input{tablas/t_sim_gate}}
+\origen{\texttt{notebook4\_semisintetico.ipynb} $\rightarrow$ \texttt{R6\_gate.csv}.}
+\end{table}
+
+\paragraph{Heterogeneidad: los GATE son insesgados, pero con baja potencia (E5).} Con efectos verdaderos de 0.03, 0.05 y 0.08 por clase, los GATE estimados tienen sesgos de menos de 0.005 y coberturas de 91--96\,\% (tabla~\ref{tab:sim_gate}). El efecto promedio se recupera sin sesgo (0.050 frente a un estimando de 0.0503). Sin embargo, la prueba de Wald detecta las diferencias solo en el 24\,\% de las réplicas, \emph{a pesar de que el efecto de la clase3 es casi el triple del de la clase1}. Con este tamaño de muestra, la ausencia de heterogeneidad significativa en los datos reales (sección R7) es poco informativa: el diseño no tiene potencia para detectar diferencias de esa magnitud.
+
+\paragraph{Dependencia espacial: la inferencia debe agruparse al nivel de la dependencia (E6).} Con choques comunes por bloque de 1\,km, el DML sigue siendo insesgado ($-0.003$), pero la cobertura del IC iid cae al 81\,\%. El IC agrupado por edificio llega al 88\,\% y el agrupado por bloque al 94\,\%, cercano al nominal. La inferencia corrige la subcobertura solo si se agrupa al nivel en que realmente opera la dependencia. En los datos reales, el error estándar por bloque de 1\,km es un 6\,\% mayor que el agrupado por edificio, y ambos IC excluyen el cero.
