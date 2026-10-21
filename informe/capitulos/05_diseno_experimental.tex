@@ -1,0 +1,70 @@
+\chapter{Diseño experimental y validación}\label{cap:diseno}
+
+Este capítulo fija, antes de ver los resultados, cómo se comparan los estimadores, qué decisiones se varían para medir la robustez y cómo se valida el procedimiento con una verdad conocida. Las decisiones del protocolo están en la primera celda de \texttt{notebook3\_estimacion\_causal.ipynb} y no se cambiaron en función de los coeficientes obtenidos.
+
+\section{Comparadores y métricas}
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Comparadores del efecto}: asociación sin ajustar, modelo hedónico lineal con el conjunto S1 y DML parcialmente lineal con cuatro \textit{learners} (HGB como principal; GBR, RF y Lasso como comparadores).
+\item \textbf{Métricas de los modelos auxiliares}: $R^2$ y error absoluto medio fuera de fold para $E[Y\mid X]$ y $E[T\mid X]$. No se usan para elegir el estimador por su coeficiente, sino para verificar que los modelos auxiliares capturan la confusión observada.
+\item \textbf{Métricas del efecto}: $\hat\theta$, error estándar agrupado por edificio, IC~95\,\%, efecto porcentual y escenario monetario para el alquiler de referencia.
+\end{itemize}
+
+\section{Particiones}
+
+La partición principal es de 5 folds agrupados por edificio, repetida 10 veces. Como alternativas se usan folds agrupados por bloque espacial de 1\,km, con errores estándar agrupados al mismo nivel (P1), y folds aleatorios sin agrupar, con errores estándar iid (P2). P2 corresponde a lo que haría un análisis ingenuo y permite ver si la dependencia entre avisos cambia la conclusión.
+
+\section{Grilla congelada de especificaciones}
+
+La tabla~\ref{tab:grilla} lista las especificaciones. Cada una cambia \emph{una sola} decisión respecto de S1. Las especificaciones de los grupos S2--S4 deberían mover el efecto si los confusores importan (H2); las del grupo S6 son controles inadmisibles que se incluyen solo para demostrar el sesgo que producen.
+
+\begin{table}[H]
+\centering\small
+\caption{Grilla de especificaciones (preespecificada)}\label{tab:grilla}
+\begin{tabularx}{\textwidth}{lX>{\raggedright\arraybackslash}p{4.6cm}}
+\toprule
+Código & Especificación & Propósito \\
+\midrule
+S0 & Asociación sin ajustar y hedónico OLS & Cuantificar la asociación, no atribuir causalidad \\
+S1 & Conjunto de ajuste del DAG & Estimador principal \\
+S2 & S1 sin área & Confusión por tamaño \\
+S3 & S1 sin ubicación (distrito, latitud, longitud) & Confusión por localización \\
+S4 & S1 sin antigüedad & Dependencia de un confusor con faltantes \\
+S4b & S1 sin dormitorios & Efecto ``paquete'' (si los dormitorios se deciden con los baños) \\
+S5 & S1 + \textit{proxy} textual validado & Reservada para OE5 (no ejecutada) \\
+S6a & S1 + precio por m² & Control derivado de $Y$ (demostración de sesgo) \\
+S6b & S1 + baños por dormitorio & Control que contiene $T$ (demostración de sesgo) \\
+S7a & S1 sin tipo de geocodificación & Sensibilidad al artefacto de medición \\
+S7b & S1 + precisión de geocodificación & Sensibilidad al artefacto de medición \\
+D1 & Sin deduplicar & Efecto de los duplicados \\
+D2 & Filtro mínimo (sin reglas de precio/m²) & Selección por el resultado en la depuración \\
+D3 & Sin geocodificación \texttt{APPROXIMATE} & Error de medición de la ubicación \\
+P1 & Folds y EE por bloque de 1\,km & Dependencia espacial más gruesa \\
+P2 & Folds aleatorios, EE iid & Inferencia que ignora la dependencia \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Para ahorrar cómputo, las especificaciones de la grilla usan 3 repeticiones del \textit{cross-fitting} en lugar de 10. Por eso el valor de S1 en la grilla difiere levemente del estimador principal.
+
+\section{Estrategia de sensibilidad}
+
+La robustez a confusores no observados se evalúa con la cota~\eqref{eq:cota}. Se reportan el valor de robustez (RV y RV$_\alpha$), los benchmarks con cuatro bloques de confusores observados ($1\times$ y $2\times$ su fuerza) y el contorno de sensibilidad. Un resultado se considerará \emph{robusto} si un confusor omitido tan fuerte como el más fuerte de los observados comparables no lo anula, y \emph{frágil} en caso contrario. Los placebos y refutadores (tratamiento permutado, causa común aleatoria, submuestras) se aplicaron en el entregable previo y no se interpretan como prueba de ignorabilidad.
+
+\section{Validación semisintética}\label{sec:semisint}
+
+La validación (\texttt{notebook4\_semisintetico.ipynb}) responde: \emph{¿el procedimiento recupera el efecto cuando se conoce la respuesta?}
+
+\paragraph{Proceso generador (DGP).} Se conservan las 3\,028 filas reales de $X$, con sus ubicaciones, edificios y bloques. Las funciones $m_0(X)$ y $g_0(X)$ se ajustan una sola vez sobre los datos reales con el mismo \textit{learner} principal, de modo que la confusión observada tiene la forma no lineal del mercado limeño. En cada réplica se generan
+\begin{align*}
+T^* &= m_0(X) + a\,\sigma_V U + \sqrt{1-a^2}\,\sigma_V Z_T + c_T(\text{celda}),\\
+T &= \min(\max(\mathrm{round}(T^*),1),5),\\
+Y &= g_0(X) + \theta(X)\,T + b\,\sigma_\varepsilon U + \sqrt{1-b^2}\,\sigma_\varepsilon Z_Y + c_Y(\text{celda}),
+\end{align*}
+con $U,Z_T,Z_Y\sim N(0,1)$ independientes. $U$ es el confusor omitido y no se entrega a los estimadores. $c_T$ y $c_Y$ son choques comunes por bloque de 1\,km, y $\sigma_V$ y $\sigma_\varepsilon$ las desviaciones estándar de los residuos fuera de fold de los datos reales.
+
+\paragraph{Escenarios.} E1: sin $U$ y efecto homogéneo $\theta_0=0.05$. E2--E4: $U$ con $a^2=b^2\in\{0.02, 0.07, 0.15\}$ (débil, moderado y fuerte). E5: efecto heterogéneo $\theta=0.03$, $0.05$ y $0.08$ en las clases 1, 2 y 3. E6: choques espaciales con desviación igual a 0.6 veces la del ruido. En E5 el estimando verdadero del modelo parcialmente lineal es el promedio ponderado por la varianza condicional de $T$, calculado por Monte Carlo.
+
+\paragraph{Estimadores y métricas.} En cada réplica se aplican la asociación sin ajustar, el hedónico OLS y el DML principal (con una partición); en E1 se agrega el DML con el control inadmisible precio/m². Con 100 réplicas por escenario se calculan el sesgo medio, el RMSE, la cobertura del IC~95\,\% (iid, por edificio y por celda) y la longitud media del IC. En E2--E4 se evalúa además si la cota~\eqref{eq:cota}, calculada con la fuerza real de $U$ en cada réplica, contiene el efecto verdadero. En E5 se evalúan la cobertura de los GATE y la potencia de la prueba de Wald.
+
+La simulación \emph{no} demuestra que el efecto estimado con los datos reales sea causal. Muestra en qué condiciones el procedimiento funciona y en cuáles falla.

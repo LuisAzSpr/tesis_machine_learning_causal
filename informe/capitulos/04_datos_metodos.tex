@@ -1,0 +1,74 @@
+\chapter{Datos y metodología}\label{cap:datos}
+
+\section{Fuente de datos}
+
+Los datos provienen del \textit{web scraping} de un portal inmobiliario peruano, realizado en marzo de 2025 sobre avisos de alquiler de departamentos en 13 distritos de Lima Metropolitana. Un \textit{pipeline} previo geocodificó cada dirección con una API de geocodificación, que devuelve latitud, longitud, un indicador de precisión (\texttt{ROOFTOP}, \texttt{GEOMETRIC\_CENTER}, \texttt{RANGE\_INTERPOLATED} o \texttt{APPROXIMATE}) y el tipo de lugar encontrado. El archivo crudo tiene 3\,739 avisos y 13 variables (anexo~\ref{anx:diccionario}). El precio es el precio de oferta mensual en soles; la descripción libre se usa solo para detectar duplicados. Ni la descripción ni la dirección se exportan a los archivos de análisis.
+
+\section{Auditoría y construcción de la muestra}\label{sec:auditoria}
+
+La auditoría (\texttt{notebook2\_auditoria.ipynb}) aplica, en orden, las reglas siguientes. Cada paso se registra con su número de exclusiones (tabla~\ref{tab:exclusiones}).
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Variables núcleo.} Se excluyen los avisos sin dormitorios, baños, área, precio o distrito. No se imputa el tratamiento, el resultado ni el área.
+\item \textbf{Deduplicación.} Se identificaron dos patrones. \emph{D1 (re-publicación)}: avisos con el mismo texto normalizado (minúsculas, sin tildes ni signos), los mismos área, dormitorios y baños, y precio a $\pm$10\,\%. La mitad de estos casos eran el mismo aviso capturado bajo dos distritos, porque el scraping buscó por distrito y el portal lo mostraba en ambos. Cuando el texto coincide pero los atributos no, se trata de una plantilla de la inmobiliaria para otra unidad y no se marca. \emph{D2 (publicación cruzada)}: mismas coordenadas (cuatro decimales, unos 11\,m), área, dormitorios, baños y precio con texto distinto, es decir, el mismo inmueble ofrecido por otro corredor. En cada grupo se conserva el aviso más reciente. Los casos D2 son ambiguos (podrían ser dos unidades idénticas del mismo edificio), por lo que se reporta también la estimación sin deduplicar.
+\item \textbf{Geocodificación incoherente (G1).} Se excluyen los avisos situados a más de 8\,km de la mediana de las coordenadas de su distrito, radio que ningún distrito de la muestra supera. Un caso de San Miguel aparecía a 141\,km. La regla no usa el precio.
+\item \textbf{Reglas de depuración F1--F6.} Son las del análisis exploratorio previo: rangos plausibles de dormitorios, área y precio por m² (F1); combinaciones incoherentes de área y distribución (F2--F3); precio menor de S/\,600 (F4); combinaciones de dormitorios y baños con tres casos o menos (F5); y precio por m² atípico dentro de su distrito (F6, por encima de $Q_3+2.5\,\mathrm{RIC}$). Varias usan el precio, lo que constituye selección por el resultado. Por eso se define además un \textbf{filtro mínimo} predefinido, que solo elimina errores groseros (área 15--1\,000\,m², precio S/\,300--30\,000, 1--6 dormitorios y baños), y se usa como especificación alternativa.
+\end{enumerate}
+
+\paragraph{Unidades de dependencia.} Se definen dos agrupamientos. El \texttt{edificio\_id} reúne los avisos con las mismas coordenadas redondeadas a cuatro decimales; es la unidad que no se reparte entre folds y el cluster principal de los errores estándar. La \texttt{celda\_1km} es un bloque espacial de unos $1\times1$\,km, usado como agrupamiento alternativo más grueso. Las coordenadas \texttt{APPROXIMATE} son centroides de calle o de zona, de modo que reúnen muchos avisos en un solo punto. Tratarlos como un único cluster es conservador; además se reporta la estimación sin ellos.
+
+\section{Variables}
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Resultado $Y$}: logaritmo natural del precio mensual de oferta.
+\item \textbf{Tratamiento $T$}: número de baños (1--5).
+\item \textbf{Confusores $X$ (S1)}: logaritmo del área; dormitorios; antigüedad en años, con los faltantes codificados como 0 y un indicador de faltante (así no se usa información de otras filas y no hay fuga entre folds); latitud y longitud; días publicado; distrito (12 indicadores); y tipo de lugar de geocodificación (indicadores, con las categorías de menos de 30 casos agrupadas en ``otro''). Son 25 columnas en total.
+\item \textbf{Segmentos para heterogeneidad}: clase de distrito (clase1: Miraflores, San Isidro, Barranco y Lince; clase2: Magdalena, Surquillo, Jesús María, San Borja y Surco; clase3: Cercado, San Miguel, Chorrillos y La Molina, la misma clasificación del análisis exploratorio) y quintiles de área.
+\end{itemize}
+
+\section{Estimadores}
+
+\subsection{Línea base: asociación y modelo hedónico}
+La asociación sin ajustar es la pendiente de una regresión de $Y$ sobre $T$. El modelo hedónico lineal regresa $Y$ sobre $T$ y las 25 columnas de $X$ por mínimos cuadrados. En ambos casos los errores estándar se agrupan por edificio.
+
+\subsection{Double Machine Learning parcialmente lineal}\label{sec:dml}
+Siguiendo a \citet{chernozhukov2018}, $\theta$ en~\eqref{eq:plr} se estima con el procedimiento siguiente.
+\begin{enumerate}[leftmargin=*]
+\item Se divide la muestra en $K=5$ folds \textbf{agrupados por edificio}: todos los avisos de un edificio caen en el mismo fold.
+\item Para cada fold $k$, se ajustan con los otros cuatro folds dos modelos de aprendizaje automático, $\hat\ell(X)\approx E[Y\mid X]$ y $\hat m(X)\approx E[T\mid X]$, y se predicen en el fold $k$ (\textit{cross-fitting}).
+\item Se forman los residuos fuera de fold $\tilde Y_i=Y_i-\hat\ell(X_i)$ y $\tilde T_i=T_i-\hat m(X_i)$: la parte del precio y de los baños que no explican los confusores.
+\item Se estima $\hat\theta=\sum_i\tilde T_i\tilde Y_i/\sum_i\tilde T_i^2$, que resuelve el momento ortogonal $E[(\tilde Y-\theta\tilde T)\tilde T]=0$.
+\item Se repite con 10 particiones aleatorias distintas y se reporta la mediana. El error estándar incorpora la dispersión entre particiones: $\hat\sigma=\sqrt{\mathrm{mediana}_r\,(\hat\sigma_r^2+(\hat\theta_r-\hat\theta)^2)}$.
+\end{enumerate}
+
+La ortogonalización hace que los errores de primer orden de $\hat\ell$ y $\hat m$ no contaminen $\hat\theta$, y el \textit{cross-fitting} evita el sesgo por sobreajuste. El \textit{learner} principal, fijado antes de estimar, es \textit{histogram gradient boosting} (scikit-learn; 300 iteraciones, tasa de aprendizaje 0.05, profundidad máxima 4, mínimo de 20 observaciones por hoja y regularización $L_2$ igual a 1). Como comparadores se usan \textit{gradient boosting} clásico, \textit{random forest} y Lasso con validación cruzada. Los diagnósticos de los modelos auxiliares ($R^2$ y error absoluto medio) se calculan fuera de fold.
+
+\subsection{Inferencia agrupada}
+Con $\psi_i=(\tilde Y_i-\hat\theta\tilde T_i)\tilde T_i$ y $J=n^{-1}\sum_i\tilde T_i^2$, el error estándar agrupado (CR1) es
+\[
+\widehat{\mathrm{EE}}(\hat\theta)=\frac{1}{nJ}\sqrt{\frac{G}{G-1}\sum_{g=1}^{G}\Big(\sum_{i\in g}\psi_i\Big)^2},
+\]
+donde $g$ indexa los clusters. El principal es el edificio ($G=2\,178$); como alternativas se usan la celda de 1\,km ($G=183$) y la versión iid.
+
+\subsection{Efectos por grupos (GATE)}
+Para cada grupo preespecificado $s$ (clase de distrito o quintil de área) se estima $\hat\theta_s=\sum_{i\in s}\tilde T_i\tilde Y_i/\sum_{i\in s}\tilde T_i^2$, reutilizando los residuos fuera de fold de la muestra completa. La covarianza conjunta entre grupos se calcula de forma agrupada por edificio a partir de las funciones de influencia. Así se construyen intervalos simultáneos (Bonferroni) y una prueba de Wald de igualdad de todos los $\theta_s$.
+
+\subsection{Sensibilidad a confusores omitidos}\label{sec:sens}
+Sea $U$ un confusor omitido. Siguiendo a \citet{chernozhukov2022}, en el modelo parcialmente lineal el sesgo de $\hat\theta$ queda acotado por
+\begin{equation}\label{eq:cota}
+|\hat\theta-\theta|\le\sqrt{\frac{R^2_{Y\sim U\mid T,X}\;R^2_{T\sim U\mid X}}{1-R^2_{T\sim U\mid X}}}\;\frac{\sigma_\varepsilon}{\sigma_{\tilde T}},
+\end{equation}
+donde $R^2_{T\sim U\mid X}$ es la fracción de la varianza residual del tratamiento explicada por $U$ y $R^2_{Y\sim U\mid T,X}$ la del resultado. La cota corresponde al caso más desfavorable ($\rho=1$). A partir de ella se calculan tres cosas:
+\begin{itemize}[leftmargin=*]
+\item el \textbf{valor de robustez} RV: la fuerza común $R^2_{T}=R^2_{Y}$ que llevaría $\hat\theta$ a cero \citep{cinelli2020}, y RV$_\alpha$, la que llevaría a cero el límite inferior del IC~95\,\%;
+\item los \textbf{benchmarks}: se re-estima el modelo omitiendo un bloque de confusores observados (área, ubicación, dormitorios o antigüedad) y se mide cuánto explicaba de la varianza residual de $T$ y de $Y$. Esto permite preguntar si un $U$ tan fuerte como el área (o el doble de fuerte) anularía el efecto;
+\item el \textbf{contorno de sensibilidad}: el efecto corregido en función de $(R^2_T,R^2_Y)$.
+\end{itemize}
+Como referencia complementaria se reporta el \textit{E-value} \citep{vanderweele2017}, con el efecto estandarizado por la desviación estándar de $Y$.
+
+\subsection{Autocorrelación espacial}
+Se calcula el I de Moran \citep{moran1950} de los residuos con una matriz de pesos de 10 vecinos más cercanos, estandarizada por filas. Su significancia se evalúa con 999 permutaciones. Un I positivo y significativo en los residuos indica que avisos cercanos comparten choques no explicados y justifica la inferencia agrupada.
+
+\section{Medición de atributos con IA (OE5): justificación de no ejecución}\label{sec:oe5}
+
+El texto de los avisos contiene menciones de atributos que podrían actuar como \textit{proxies} de la calidad no observada: vista, ascensor, piscina, amoblado o remodelado. Una inspección preliminar con expresiones regulares indica que estas menciones son frecuentes. Usar estas variables como controles exige (i) una taxonomía documentada, (ii) un etiquetado manual de 200 a 300 avisos para medir precisión y \textit{recall}, (iii) enmascarar las menciones del propio tratamiento y del precio y (iv) justificar la posición causal de cada \textit{proxy} en el DAG. Por decisión de alcance, este componente se difiere al siguiente entregable. La especificación S5 de la grilla queda reservada para él y el análisis de sensibilidad cubre, mientras tanto, la amenaza que estos \textit{proxies} buscarían reducir.
