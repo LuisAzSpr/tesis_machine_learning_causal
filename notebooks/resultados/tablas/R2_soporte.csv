@@ -1,0 +1,9 @@
+diagnóstico,valor
+AUC de la propensión (fuera de fold),0.824
+Log-loss,0.516
+Brier,0.171
+"R² de E[Y|D,X] (fuera de fold)",0.824
+Propensión mínima / máxima,0.004 / 0.992
+"% fuera de [0.05, 0.95]",5.0 %
+N en soporte común,"1,949"
+Tratados / controles en soporte común,"1,046 / 903"

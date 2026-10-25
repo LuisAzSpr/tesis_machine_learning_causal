@@ -1,161 +1,245 @@
 \chapter{Resultados}\label{cap:resultados}
 
-Todas las cifras de este capítulo provienen de las ejecuciones finales de los notebooks 2--4. Cada tabla y figura indica su archivo de origen.
+Todas las cifras provienen de las ejecuciones finales de los notebooks 2, 2b, 3, 3b y 4. Cada tabla y figura indica su archivo de origen.
 
 \section{Población y muestra (R1)}
 
-\subsection{Exclusiones}
-De los 3\,739 avisos del archivo crudo, la muestra analítica conserva 3\,028 (81.0\,\%). La tabla~\ref{tab:exclusiones} detalla las pérdidas. Las dos novedades respecto del análisis previo son la deduplicación y la geocodificación. Se marcaron 243 duplicados: 166 re-publicaciones (D1), de las cuales 83 eran el mismo aviso capturado bajo dos distritos, y 77 publicaciones cruzadas (D2). Además, 26 avisos estaban geocodificados a más de 8\,km de su distrito. Sin estas correcciones, el análisis previo trabajaba con 3\,276 avisos, de los cuales unos 220 eran repeticiones del mismo departamento.
+De los 3\,739 avisos del archivo crudo, la muestra analítica conserva 2\,220 (59.4\,\%). La tabla~\ref{tab:exclusiones} detalla las pérdidas:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Duplicados:} se marcaron 243 (166 re-publicaciones, de las cuales 83 eran el mismo aviso capturado bajo dos distritos, y 77 publicaciones cruzadas).
+\item \textbf{Geocodificación incoherente:} 26 avisos estaban a más de 8\,km de su distrito.
+\item \textbf{Geocodificación no exacta:} la exclusión más grande. De los 3\,247 avisos restantes, solo 2\,280 (70\,\%) tienen dirección \texttt{ROOFTOP}; el resto (626 \texttt{APPROXIMATE}, 313 \texttt{GEOMETRIC\_CENTER} y 28 \texttt{RANGE\_INTERPOLATED}) se excluye.
+\item \textbf{Reglas de depuración:} dentro de la muestra ROOFTOP excluyen solo 60 avisos. Los valores atípicos se concentraban en las direcciones imprecisas.
+\end{itemize}
 
 \begin{table}[H]
 \centering\small
 \caption{Flujo de exclusiones de la muestra (R1)}\label{tab:exclusiones}
 \resizebox{\textwidth}{!}{\input{tablas/t_exclusiones}}
-\origen{\texttt{notebook2\_auditoria.ipynb} $\rightarrow$ \texttt{R1\_exclusiones.csv}. La regla F3 no excluyó avisos tras la deduplicación.}
+\origen{\texttt{notebook2\_auditoria.ipynb} $\rightarrow$ \texttt{R1\_exclusiones.csv}. La regla F3 no excluyó avisos.}
 \end{table}
 
-\subsection{Perfil territorial}
-La tabla~\ref{tab:cobertura} describe la muestra por distrito. Miraflores aporta el 15.2\,\% de los avisos y Magdalena el 4.3\,\%. El precio mediano va de S/\,1\,800 (Chorrillos) a S/\,3\,699 (Miraflores). La calidad de la información varía mucho entre distritos. En Barranco y Miraflores la antigüedad está siempre informada y más del 90\,\% de las direcciones se geocodificaron con precisión \texttt{ROOFTOP}. En Cercado falta la antigüedad del 47\,\% de los avisos y solo el 58\,\% tiene precisión \texttt{ROOFTOP}. En total, la antigüedad falta en el 25.0\,\% de la muestra final.
+La tabla~\ref{tab:cobertura} describe la muestra por distrito. Miraflores aporta el 19.2\,\% de los avisos y Magdalena el 4.7\,\%. El precio mediano va de S/\,1\,850 (Chorrillos) a S/\,3\,771 (San Isidro). La antigüedad falta en el 9.2\,\% de los avisos, frente al 25\,\% de la muestra con todas las precisiones: las direcciones exactas vienen de avisos más completos. La muestra tiene 1\,948 edificios distintos; el 22\,\% de los avisos comparte edificio con otro, con un máximo de 7 por edificio.
 
 \begin{table}[H]
 \centering\footnotesize
-\caption{Cobertura y perfil por distrito, muestra principal (N = 3\,028)}\label{tab:cobertura}
+\caption{Cobertura y perfil por distrito, muestra principal ROOFTOP (N = 2\,220)}\label{tab:cobertura}
 \resizebox{\textwidth}{!}{\input{tablas/t_cobertura}}
 \origen{\texttt{notebook2\_auditoria.ipynb} $\rightarrow$ \texttt{R1\_cobertura\_distrito.csv}.}
 \end{table}
 
-La figura~\ref{fig:territorio} muestra la distribución espacial. Los avisos con geocodificación \texttt{APPROXIMATE} (círculos) se concentran en pocos puntos: son centroides de calle o de zona, y en conjunto forman casi todos los ``edificios'' de más de 20 avisos. La muestra principal tiene 2\,178 edificios (el 37\,\% de los avisos comparte edificio con otro) y 183 bloques de 1\,km (tabla~\ref{tab:agrupamientos} del anexo).
-
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{F2_territorio.png}
-\caption{Distribución territorial de la muestra (F2). Izquierda: avisos por distrito; los círculos negros marcan la geocodificación aproximada. Derecha: bloques espaciales de 1\,km usados como agrupamiento alternativo.}\label{fig:territorio}
+\caption{Distribución territorial de la muestra ROOFTOP (F2). Izquierda: avisos por distrito. Derecha: bloques espaciales de 1\,km.}\label{fig:territorio}
 \origen{\texttt{notebook2\_auditoria.ipynb}, sección 6 $\rightarrow$ \texttt{F2\_territorio.png}.}
 \end{figure}
 
-\subsection{Tratamiento}
-El 35.2\,\% de los departamentos tiene un baño, el 48.9\,\% dos, el 13.4\,\% tres y el 2.5\,\% cuatro o cinco. Los modelos auxiliares explican el 62\,\% de la varianza del número de baños a partir de los confusores (tabla~\ref{tab:learners}). Queda, por tanto, un 38\,\% de variación residual entre departamentos comparables, que es la fuente de identificación de $\theta$.
+\section{Medición de la cochera con IA (R8)}\label{sec:res_ia}
 
-\section{Estimación primaria (R3)}
-
-La tabla~\ref{tab:principal} presenta el resultado central. Sin ajustar, un baño adicional se asocia con un precio 45.1\,\% mayor. Al ajustar linealmente por los confusores del DAG, la asociación cae a 8.4\,\%. Con Double ML, que permite que área, ubicación y antigüedad afecten de forma no lineal al precio y a los baños, el efecto estimado es de \textbf{5.3\,\%} por baño adicional (IC 95\,\%: 1.9--8.8\,\%). Para un alquiler de referencia de S/\,2\,500, equivale a \textbf{unos S/\,133 mensuales} (IC: S/\,49--220).
+De los 2\,220 avisos, 659 (29.7\,\%) no mencionan cochera ni estacionamiento y se clasificaron sin llamar a la API. Los 1\,561 restantes se enviaron como fragmentos de unos 458 caracteres, frente a 1\,012 de la descripción completa (tabla~\ref{tab:prefiltro}). El costo total fue de \textbf{0.76 USD}: 0.74 de la extracción completa y 0.02 de los dos pilotos.
 
 \begin{table}[H]
-\centering\footnotesize
-\caption{Efecto de un baño adicional sobre el precio de oferta (R3). EE agrupados por edificio; N = 3\,028}\label{tab:principal}
-\resizebox{\textwidth}{!}{\input{tablas/t_principal}}
-\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 2 $\rightarrow$ \texttt{R3\_principal.csv}. Escenario monetario: alquiler de referencia de S/\,2\,500 (mediana de la muestra).}
+\centering\small
+\caption{Pre-filtro con expresiones regulares}\label{tab:prefiltro}
+
+\input{tablas/t_prefiltro}
+\origen{\texttt{notebook2b\_extraccion\_ia.ipynb} $\rightarrow$ \texttt{R8\_prefiltro.csv}.}
 \end{table}
-
-La diferencia entre el hedónico lineal (8.4\,\%) y el DML (5.3\,\%) indica que la forma funcional importa: una regresión lineal en el log del área y en las coordenadas no captura toda la confusión por tamaño y ubicación, y atribuye parte de ella a los baños. Las 10 repeticiones del \textit{cross-fitting} dieron valores entre 0.048 y 0.058, de modo que la elección de la partición no altera la conclusión.
-
-\paragraph{Modelos auxiliares.} La tabla~\ref{tab:learners} muestra que los tres \textit{learners} basados en árboles tienen un desempeño fuera de fold casi idéntico ($R^2\approx0.66$--$0.68$ para el precio y $\approx0.62$ para los baños) y producen efectos muy similares (5.2--5.8\,\%). Lasso, que solo captura relaciones lineales, ajusta peor el precio ($R^2=0.59$) y da un efecto mayor (8.8\,\%), cercano al del hedónico lineal. Esto es coherente con la lectura anterior: la confusión no lineal que Lasso no captura se filtra al coeficiente del tratamiento.
 
 \begin{table}[H]
-\centering\footnotesize
-\caption{Diagnóstico de los modelos auxiliares y efecto por \textit{learner} (métricas fuera de fold)}\label{tab:learners}
-\resizebox{\textwidth}{!}{\input{tablas/t_learners}}
-\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 2 $\rightarrow$ \texttt{R3\_learners.csv}. HGB: 10 repeticiones; demás: 3.}
+\centering\small
+\caption{Clasificación de la cochera y uso en el análisis}\label{tab:extraccion}
+
+\input{tablas/t_extraccion}
+\origen{\texttt{notebook2b\_extraccion\_ia.ipynb} $\rightarrow$ \texttt{R8\_distribucion.csv}.}
 \end{table}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{F4_estimadores.png}
-\caption{Estimadores del efecto de un baño adicional con IC 95\,\% (F4). Izquierda: todos; derecha: detalle de los estimadores ajustados.}\label{fig:estimadores}
-\origen{\texttt{notebook3\_estimacion\_causal.ipynb} $\rightarrow$ \texttt{F4\_estimadores.png}.}
-\end{figure}
-
-\section{Grilla de especificaciones (R4)}
-
-La tabla~\ref{tab:especificaciones} y la figura~\ref{fig:especificaciones} muestran cómo cambia el efecto al variar una decisión a la vez.
-
-\begin{table}[H]
-\centering\scriptsize
-\caption{Efecto estimado bajo cada especificación (R4). DML-HGB, 3 repeticiones, EE agrupados}\label{tab:especificaciones}
-\resizebox{\textwidth}{!}{\input{tablas/t_especificaciones}}
-\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 3 $\rightarrow$ \texttt{R4\_especificaciones.csv}.}
-\end{table}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.95\textwidth]{F4b_especificaciones.png}
-\caption{Sensibilidad del efecto a las decisiones de especificación, depuración y partición.}\label{fig:especificaciones}
-\origen{\texttt{notebook3\_estimacion\_causal.ipynb} $\rightarrow$ \texttt{F4b\_especificaciones.png}.}
-\end{figure}
-
-Se distinguen tres patrones:
-\begin{enumerate}[leftmargin=*]
-\item \textbf{Omitir confusores sesga hacia arriba.} Sin el área (S2), el efecto se cuadruplica hasta 20.4\,\%: los baños pasan a capturar el valor del tamaño. Sin la ubicación (S3), sube a 8.4\,\%, y sin la antigüedad (S4), a 6.8\,\%. El orden coincide con la fuerza de cada confusor medida en la sección de sensibilidad.
-\item \textbf{Los controles inadmisibles destruyen la estimación.} Al incluir el precio por m² (S6a), el efecto colapsa a $-0.1$\,\%: como el precio por m² es el precio dividido por el área, condicionar en él y en el área equivale a condicionar en el propio resultado. Con baños por dormitorio (S6b), que contiene el tratamiento, la estimación se vuelve inestable ($\hat\theta=-0.92$ con un IC de más de dos unidades).
-\item \textbf{Las decisiones defendibles no cambian la conclusión.} Excluir los dormitorios (S4b: 5.4\,\%), cambiar el tratamiento de la geocodificación (S7a, S7b: 4.5--4.8\,\%), no deduplicar (D1: 4.3\,\%), usar el filtro mínimo sin reglas de precio (D2: 5.8\,\%), excluir las coordenadas aproximadas (D3: 4.2\,\%) o cambiar la partición (P1, P2: 4.8--5.7\,\%) producen efectos entre 4.2 y 5.8\,\%, todos con IC que excluyen el cero.
-\end{enumerate}
-
-Que S4b sea casi igual a S1 indica que, condicionando en el área, los dormitorios apenas explican el precio. Su papel como posible parte del ``paquete'' no cambia la conclusión. La especificación sin deduplicar da un efecto algo menor y un IC más estrecho: los duplicados aportan precisión ficticia, porque cuentan dos veces la misma información.
-
-\section{Robustez a confusores no observados (R5)}
-
-El valor de robustez es RV $=0.075$: un confusor omitido que explicara el 7.5\,\% de la varianza residual del número de baños \emph{y} el 7.5\,\% de la varianza residual del log-precio bastaría para llevar el efecto a cero. Para que el IC deje de excluir el cero basta un confusor con RV$_\alpha=0.029$. El \textit{E-value} es 1.40.
-
-\begin{table}[H]
-\centering\footnotesize
-\caption{Efecto corregido si existiera un confusor omitido tan fuerte como un bloque de confusores observados (R5)}\label{tab:sensibilidad}
-\resizebox{\textwidth}{!}{\input{tablas/t_sensibilidad}}
-\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 4 $\rightarrow$ \texttt{R5\_sensibilidad.csv}. Cota con $\rho=1$ (caso más desfavorable).}
-\end{table}
-
-¿Es plausible un confusor de esa fuerza? La tabla~\ref{tab:sensibilidad} y la figura~\ref{fig:sensibilidad} lo comparan con los confusores observados:
+La tabla~\ref{tab:extraccion} muestra el resultado:
 \begin{itemize}[leftmargin=*]
-\item Un $U$ \textbf{tan fuerte como la antigüedad} reduciría el efecto a 3.6\,\% y el IC seguiría excluyendo el cero. Con el doble de fuerza, el efecto puntual se mantendría positivo (1.8\,\%), pero el IC incluiría el cero.
-\item Un $U$ \textbf{tan fuerte como la ubicación}, que explica poco de los baños (1\,\%) pero mucho del precio (17\,\%), reduciría el efecto a 2.5\,\% y el IC incluiría el cero.
-\item Un $U$ \textbf{tan fuerte como el área}, el confusor más fuerte (13\,\% de los baños y 27\,\% del precio), invertiría el signo.
-\item Los dormitorios explican mucho de los baños pero nada del precio residual, de modo que un confusor como ellos no sesgaría el resultado.
+\item \textbf{Cochera incluida:} 1\,095 avisos (49\,\%), el grupo tratado.
+\item \textbf{No tiene, según la IA:} 297 avisos. Mencionaban la palabra pero el modelo detectó ``no tiene cochera'', estacionamiento de visitas o en la calle, casos que una regex no distingue.
+\item \textbf{Costo extra:} 150 avisos. 110 indican un monto, con una mediana de S/\,250 mensuales.
+\item \textbf{Ambiguos:} 19 avisos.
+\end{itemize}
+Solo 155 avisos dicen literalmente que la cochera está incluida, lo que confirma que el supuesto ``sin pago adicional = incluida'' es necesario para tener un grupo tratado de tamaño útil.
+
+\begin{table}[H]
+\centering\small
+\caption{Perfil de los grupos de tratamiento}\label{tab:perfil}
+
+\resizebox{\textwidth}{!}{\input{tablas/t_perfil}}
+\origen{\texttt{notebook2b\_extraccion\_ia.ipynb} $\rightarrow$ \texttt{R8\_perfil\_grupos.csv}.}
+\end{table}
+
+Los grupos son muy distintos (tabla~\ref{tab:perfil} y figura~\ref{fig:coch_dist}). Los departamentos con cochera incluida tienen un área mediana de 96\,m² frente a 65\,m², medio baño más en promedio, y el 56\,\% está en los distritos de la clase1 (frente al 32\,\%). Es la confusión que el diseño debe resolver.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{F8_cochera_distrito.png}
+\caption{Porcentaje de avisos con cochera incluida por distrito (muestra ROOFTOP).}\label{fig:coch_dist}
+\origen{\texttt{notebook2b\_extraccion\_ia.ipynb}, sección 5 $\rightarrow$ \texttt{F8\_cochera\_distrito.png}.}
+\end{figure}
+
+\section{Soporte común y balance (R2)}
+
+La propensión fuera de fold discrimina bien entre tratados y controles: AUC de 0.82 (tabla~\ref{tab:soporte}). Solo el 5\,\% de los avisos tiene una propensión fuera de $[0.05,0.95]$, de modo que la población con soporte común conserva 1\,949 avisos (1\,046 tratados y 903 controles). Antes de ponderar, las diferencias estandarizadas son grandes: 0.92 en el área y 0.71 en los baños. Después de ponderar dentro del soporte común, todas quedan por debajo de 0.05 en valor absoluto (tabla~\ref{tab:balance}, figura~\ref{fig:soporte}). Por debajo de 0.1 se suele considerar que hay balance.
+
+\begin{table}[H]
+\centering\small
+\caption{Diagnósticos de la propensión y del soporte común (R2)}\label{tab:soporte}
+\input{tablas/t_soporte}
+\origen{\texttt{notebook3b\_efecto\_cochera.ipynb}, sección 2 $\rightarrow$ \texttt{R2\_soporte.csv}.}
+\end{table}
+
+\begin{table}[H]
+\centering\small
+\caption{Balance de covariables: diferencias de medias estandarizadas}\label{tab:balance}
+\input{tablas/t_balance}
+\origen{\texttt{notebook3b\_efecto\_cochera.ipynb}, sección 2 $\rightarrow$ \texttt{R2\_balance.csv}.}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{F3_soporte_cochera.png}
+\caption{Soporte común (F3). Izquierda: propensión por brazo con los límites de recorte. Derecha: balance antes y después de ponderar.}\label{fig:soporte}
+\origen{\texttt{notebook3b\_efecto\_cochera.ipynb}, sección 2 $\rightarrow$ \texttt{F3\_soporte\_cochera.png}.}
+\end{figure}
+
+\section{Efecto de la cochera incluida (R3)}
+
+\begin{table}[H]
+\centering\footnotesize
+\caption{Efecto de tener cochera incluida sobre el precio de oferta (R3). EE agrupados por edificio}\label{tab:principal_c}
+\resizebox{\textwidth}{!}{\input{tablas/t_principal_c}}
+\origen{\texttt{notebook3b\_efecto\_cochera.ipynb}, sección 3 $\rightarrow$ \texttt{R3c\_principal.csv}. Alquiler de referencia: S/\,2\,650.}
+\end{table}
+
+La tabla~\ref{tab:principal_c} presenta el resultado central:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Sin ajustar}, los departamentos con cochera incluida se ofrecen un 63\,\% más caros.
+\item \textbf{Con el DML-IRM en la población con soporte común}, el efecto es de \textbf{7.5\,\% (IC 95\,\%: 3.7--11.4\,\%)}, unos \textbf{S/\,199 mensuales} (IC: S/\,98--303) sobre un alquiler de S/\,2\,650.
+\item \textbf{Comparadores:} el hedónico OLS (7.8\,\%) y el DML-PLR (7.1\,\%) dan valores muy parecidos.
+\item \textbf{Sin recorte}, el IRM es inestable (4.3\,\%, con un IC de $-2.7$ a 11.9\,\%). Unos pocos avisos con propensión extrema dominan el promedio, lo que confirma que el recorte al soporte común es necesario.
+\item \textbf{Repeticiones:} las 10 particiones dieron entre 6.8 y 9.4\,\%.
+\item \textbf{Modelos auxiliares:} el modelo del resultado explica el 82\,\% de la varianza del log-precio fuera de fold.
 \end{itemize}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{F5_sensibilidad.png}
-\caption{Contorno de sensibilidad con benchmarks (F5). Línea continua: efecto igual a cero; línea discontinua: límite inferior del IC igual a cero; estrella: valor de robustez; puntos: confusores $1\times$ y $2\times$ tan fuertes como los observados.}\label{fig:sensibilidad}
-\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 4 $\rightarrow$ \texttt{F5\_sensibilidad.png}.}
+\includegraphics[width=0.9\textwidth]{F4c_estimadores_cochera.png}
+\caption{Estimadores del efecto de la cochera con IC 95\,\% (F4).}\label{fig:estimadores_c}
+\origen{\texttt{notebook3b\_efecto\_cochera.ipynb} $\rightarrow$ \texttt{F4c\_estimadores\_cochera.png}.}
 \end{figure}
 
-La pregunta sustantiva es si la calidad de los acabados, el piso o la vista pesan, una vez descontados área, ubicación, antigüedad y dormitorios, tanto como la antigüedad o tanto como la ubicación. Es plausible que la calidad de los acabados explique una fracción del precio residual comparable a la de la ubicación. En cambio, es menos claro que explique mucho del número de baños una vez fijado el área. El resultado es, por tanto, \textbf{moderadamente frágil}: sobrevive a confusores de la fuerza de la antigüedad, pero no a uno de la fuerza de la ubicación.
+Que el hedónico y el DML coincidan aquí, y no en el caso de los baños (sección~\ref{sec:banos}), es informativo. Con un tratamiento binario y buen balance tras el ajuste, la forma funcional importa menos; la validación semisintética (escenario B1) muestra el mismo patrón.
 
-\section{Heterogeneidad preespecificada (R7)}
-
-La tabla~\ref{tab:gate} y la figura~\ref{fig:gate} presentan los GATE. Por clase de distrito, el efecto puntual es mayor en la clase1 (7.8\,\%) que en la clase2 (3.9\,\%) y la clase3 (4.6\,\%). Las diferencias no son estadísticamente significativas (Wald $\chi^2_2=0.95$, $p=0.62$) y los IC simultáneos se superponen ampliamente. Por quintil de área, los efectos van de 4.0\,\% a 9.2\,\%, sin un patrón monótono y también sin diferencias significativas (Wald $\chi^2_4=2.47$, $p=0.65$).
+\section{Grilla de especificaciones (R4)}
 
 \begin{table}[H]
 \centering\scriptsize
-\caption{Efectos por grupo preespecificado (GATE, R7)}\label{tab:gate}
-\resizebox{\textwidth}{!}{\input{tablas/t_gate}}
-\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 5 $\rightarrow$ \texttt{R7\_gate.csv}. IC simultáneo de Bonferroni; EE agrupados por edificio.}
+\caption{Efecto de la cochera bajo cada especificación (R4). DML-IRM, soporte común, 3 repeticiones}\label{tab:especificaciones_c}
+\resizebox{\textwidth}{!}{\input{tablas/t_especificaciones_c}}
+\origen{\texttt{notebook3b\_efecto\_cochera.ipynb}, sección 4 $\rightarrow$ \texttt{R4c\_especificaciones.csv}.}
+\end{table}
+
+La tabla~\ref{tab:especificaciones_c} muestra tres patrones:
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Omitir confusores sesga hacia arriba.} Sin la ubicación, el efecto casi se triplica (21.7\,\%): las cocheras abundan en los distritos caros. Sin el área sube a 11.4\,\%, sin baños ni dormitorios a 9.1\,\% y sin la antigüedad a 8.1\,\%.
+\item \textbf{El control inadmisible lo destruye.} Con el precio por m², el efecto cae a $-0.5$\,\%.
+\item \textbf{La medición importa poco en la dirección esperada.} Con la definición estricta (solo inclusión explícita; N = 547) el efecto es de 7.9\,\%, con un intervalo más amplio. Si se cuentan como tratadas también las cocheras de costo extra, baja a 5.3\,\%, lo esperable porque su precio no las incluye. Controlar por la descripción truncada no cambia nada (7.4\,\%), y tampoco agrupar por bloques de 1\,km (7.7\,\%).
+\end{enumerate}
+
+\section{Robustez a confusores no observados (R5)}
+
+El valor de robustez es RV $=0.105$: un confusor omitido que explicara el 10.5\,\% de la variación residual del tratamiento y del precio anularía el efecto. Para que el IC incluya el cero bastaría uno de fuerza 0.054. La tabla~\ref{tab:sensibilidad_c} lo compara con los confusores observados:
+\begin{itemize}[leftmargin=*]
+\item Un $U$ \textbf{tan fuerte como la antigüedad} reduciría el efecto a 0.4\,\%.
+\item Un $U$ \textbf{tan fuerte como la ubicación} lo invertiría.
+\item Para el área y para baños y dormitorios, el benchmark del tratamiento resulta cero: omitirlos no aumenta $\nu^2$ en la población recortada, de modo que la cota no los penaliza. La validación semisintética muestra que esta cota es optimista para el estimador binario (sección~\ref{sec:res_sim}), así que estos valores deben leerse como un mínimo.
+\end{itemize}
+El resultado es, por tanto, \textbf{frágil frente a un confusor de la magnitud de la antigüedad}. El candidato natural es la calidad del edificio, que se asocia tanto con tener cochera como con el precio.
+
+\begin{table}[H]
+\centering\footnotesize
+\caption{Efecto corregido si existiera un confusor omitido tan fuerte como un bloque observado (R5)}\label{tab:sensibilidad_c}
+\resizebox{\textwidth}{!}{\input{tablas/t_sensibilidad_c}}
+\origen{\texttt{notebook3b\_efecto\_cochera.ipynb}, sección 5 $\rightarrow$ \texttt{R5c\_sensibilidad.csv}.}
 \end{table}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{F7_heterogeneidad.png}
-\caption{GATE por clase de distrito y por quintil de área (F7). Negro: IC 95\,\%; naranja: IC simultáneo; rojo: efecto promedio.}\label{fig:gate}
-\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 5 $\rightarrow$ \texttt{F7\_heterogeneidad.png}.}
+\includegraphics[width=0.72\textwidth]{F5c_sensibilidad_cochera.png}
+\caption{Contorno de sensibilidad del efecto de la cochera (F5). Línea continua: efecto cero; discontinua: límite inferior del IC igual a cero.}\label{fig:sensibilidad_c}
+\origen{\texttt{notebook3b\_efecto\_cochera.ipynb}, sección 5 $\rightarrow$ \texttt{F5c\_sensibilidad\_cochera.png}.}
 \end{figure}
 
-Con esta precisión, los datos no permiten afirmar que el valor de un baño adicional difiera entre zonas o tamaños. La hipótesis H3 queda sin respaldo. No es evidencia de homogeneidad: los IC por grupo son amplios (de unos $\pm6$ puntos porcentuales) y no descartarían diferencias moderadas.
+\section{Heterogeneidad preespecificada (R7)}
 
-\section{Dependencia espacial}
-
-Los residuos del precio presentan autocorrelación espacial positiva y significativa (I de Moran $=0.061$, $p=0.001$), mientras que los del número de baños no ($I=0.004$, $p=0.30$) (tabla~\ref{tab:moran}). Avisos cercanos comparten choques de precio no explicados por los confusores, como el entorno inmediato o la calidad del edificio. Como esa dependencia afecta al residuo final, la inferencia iid subestima la incertidumbre. El error estándar agrupado por edificio es un 31\,\% mayor que el iid, y el agrupado por bloque de 1\,km un 39\,\% mayor (tabla~\ref{tab:inferencia}). Con cualquiera de ellos, el IC del efecto sigue excluyendo el cero.
+A diferencia de los baños, aquí \textbf{sí hay evidencia de heterogeneidad} (tabla~\ref{tab:gate_c}, figura~\ref{fig:gate_c}). Por clase de distrito:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Clase1} (Miraflores, San Isidro, Barranco y Lince): 1.5\,\%, con un IC que incluye el cero.
+\item \textbf{Clase2}: 10.3\,\%.
+\item \textbf{Clase3}: 17.8\,\%.
+\end{itemize}
+La prueba de Wald rechaza la igualdad ($\chi^2_2=18.3$, $p=0.0001$), y los intervalos simultáneos de la clase1 y la clase3 no se superponen. Por tamaño no hay diferencias significativas ($p=0.35$).
 
 \begin{table}[H]
-\centering\small
-\caption{I de Moran de los residuos (10 vecinos más cercanos, 999 permutaciones)}\label{tab:moran}
-\input{tablas/t_moran}
-\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 6 $\rightarrow$ \texttt{E7\_moran.csv}.}
+\centering\scriptsize
+\caption{Efecto de la cochera por grupo preespecificado (GATE, R7)}\label{tab:gate_c}
+\resizebox{\textwidth}{!}{\input{tablas/t_gate_c}}
+\origen{\texttt{notebook3b\_efecto\_cochera.ipynb}, sección 6 $\rightarrow$ \texttt{R7c\_gate.csv}.}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{F7c_heterogeneidad_cochera.png}
+\caption{Efecto de la cochera por clase de distrito y por quintil de área (F7).}\label{fig:gate_c}
+\origen{\texttt{notebook3b\_efecto\_cochera.ipynb}, sección 6 $\rightarrow$ \texttt{F7c\_heterogeneidad\_cochera.png}.}
+\end{figure}
+
+\paragraph{Dependencia espacial.} El residuo del resultado tiene una autocorrelación pequeña pero significativa (I de Moran $=0.019$, $p=0.025$). El error estándar por bloque de 1\,km (0.022) es mayor que el agrupado por edificio (0.018); con ambos, el IC excluye el cero.
+
+\section{Análisis secundario: un baño adicional}\label{sec:banos}
+
+Sobre los mismos 2\,220 avisos ROOFTOP, la asociación sin ajustar de un baño adicional es de 45.7\,\%. El hedónico lineal la reduce a 7.4\,\% y el DML-PLR a \textbf{3.8\,\% (IC 95\,\%: 1.7--6.0\,\%)}, unos S/\,100 mensuales (tabla~\ref{tab:principal}). Los modelos auxiliares explican fuera de fold el 81\,\% de la varianza del log-precio y el 63\,\% de la de los baños. Los \textit{learners} de árboles coinciden (3.8--4.4\,\%), mientras que Lasso, lineal, da 7.6\,\%, igual que el hedónico (tabla~\ref{tab:learners}).
+
+\begin{table}[H]
+\centering\footnotesize
+\caption{Efecto de un baño adicional (muestra ROOFTOP, N = 2\,220)}\label{tab:principal}
+\resizebox{\textwidth}{!}{\input{tablas/t_principal}}
+\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 2 $\rightarrow$ \texttt{R3\_principal.csv}. Alquiler de referencia: S/\,2\,625.}
 \end{table}
 
 \begin{table}[H]
-\centering\small
-\caption{Inferencia del estimador principal según el tratamiento de la dependencia}\label{tab:inferencia}
-\input{tablas/t_inferencia}
-\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 6 $\rightarrow$ \texttt{E7\_inferencia.csv}.}
+\centering\footnotesize
+\caption{Diagnóstico de los modelos auxiliares y efecto por \textit{learner} (baños)}\label{tab:learners}
+\resizebox{\textwidth}{!}{\input{tablas/t_learners}}
+\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 2 $\rightarrow$ \texttt{R3\_learners.csv}.}
+\end{table}
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Efecto de un baño adicional bajo cada especificación}\label{tab:especificaciones}
+\resizebox{\textwidth}{!}{\input{tablas/t_especificaciones}}
+\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 3 $\rightarrow$ \texttt{R4\_especificaciones.csv}.}
+\end{table}
+
+La grilla (tabla~\ref{tab:especificaciones}) repite los patrones del entregable anterior:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Confusores omitidos:} sin el área el efecto sube a 19.5\,\% y sin la ubicación a 8.4\,\%.
+\item \textbf{Control inadmisible:} con el precio por m² cae a $-0.3$\,\%.
+\item \textbf{Nuevo (S8):} agregar la cochera como control apenas lo cambia (3.5\,\%). La cochera, que el BCRP identifica como la característica más valorada, no explica el efecto de los baños.
+\item \textbf{Todas las precisiones de geocodificación (D3):} el efecto sube a 5.1\,\%. La ubicación imprecisa inflaba el efecto del baño en el entregable anterior.
+\end{itemize}
+
+Por clase de distrito ($p=0.31$) y por tamaño ($p=0.65$) no hay diferencias significativas. Con direcciones exactas, la autocorrelación espacial residual deja de ser significativa (I de Moran $=0.012$, $p=0.10$), y el error estándar agrupado por edificio es igual al iid. El valor de robustez es 0.079: un confusor tan fuerte como la antigüedad llevaría el efecto a 0.7\,\%, con un IC que incluye el cero (tabla~\ref{tab:sensibilidad}).
+
+\begin{table}[H]
+\centering\footnotesize
+\caption{Sensibilidad del efecto de un baño adicional}\label{tab:sensibilidad}
+\resizebox{\textwidth}{!}{\input{tablas/t_sensibilidad}}
+\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 4 $\rightarrow$ \texttt{R5\_sensibilidad.csv}.}
 \end{table}
 
 \section{Validación semisintética (R6)}\label{sec:res_sim}
@@ -164,4 +248,11 @@ Los residuos del precio presentan autocorrelación espacial positiva y significa
 
 \section{Resultados desfavorables}
 
-Por transparencia, se resumen los hallazgos que limitan la conclusión: (i) la fragilidad moderada frente a confusores del tamaño de la ubicación; (ii) la ausencia de evidencia de heterogeneidad, que impide recomendaciones diferenciadas por zona; (iii) la autocorrelación espacial residual, que indica variables de entorno no capturadas; y (iv) la pérdida de información de antigüedad en un cuarto de la muestra, concentrada en algunos distritos.
+Por transparencia, se resumen los hallazgos que limitan la conclusión:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+\item Ambos efectos son frágiles frente a un confusor omitido del tamaño de la antigüedad.
+\item La cota de sensibilidad del estimador binario resultó optimista en la simulación.
+\item La medición de la cochera no tiene validación humana todavía.
+\item Restringir a direcciones exactas descarta el 30\,\% de los avisos, que son más baratos.
+\item En la clase1 no se detecta efecto de la cochera.
+\end{enumerate}

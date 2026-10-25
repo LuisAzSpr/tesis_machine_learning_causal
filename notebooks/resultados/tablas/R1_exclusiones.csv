@@ -4,8 +4,9 @@ Sin dormitorios/baños/área/precio/distrito,3516,223,94.03583845948114
 Duplicados D1 (re-publicación),3350,166,89.59614870286173
 Duplicados D2 (publicación cruzada),3273,77,87.5367745386467
 G1 geocodificación incoherente (>8 km del distrito),3247,26,86.84140144423642
-"F1 rangos (dorm>6, área>600, precio/m2 fuera de [8,120])",3117,130,83.36453597218508
-"F2 área incoherente (<=2 dorm, 1 baño, >=160 m2)",3116,1,83.3377908531693
-F4 precio < 600,3065,51,81.97378978336454
-F5 combinación dorm-baños rara (<=3 casos),3049,16,81.54586787911207
-F6 precio/m2 atípico en su distrito,3028,21,80.9842203797807
+G2 geocodificación no exacta (distinta de ROOFTOP),2280,967,60.97887135597753
+"F1 rangos (dorm>6, área>600, precio/m2 fuera de [8,120])",2263,17,60.52420433270928
+"F2 área incoherente (<=2 dorm, 1 baño, >=160 m2)",2262,1,60.4974592136935
+F4 precio < 600,2254,8,60.28349826156727
+F5 combinación dorm-baños rara (<=3 casos),2244,10,60.01604707140947
+F6 precio/m2 atípico en su distrito,2220,24,59.37416421503076

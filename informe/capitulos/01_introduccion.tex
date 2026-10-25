@@ -2,37 +2,54 @@
 
 \section{Contexto}
 
-El alquiler es una vía de acceso a la vivienda cada vez más importante en Lima Metropolitana. En los distritos consolidados del centro y del sur de la ciudad, la oferta de departamentos se publica sobre todo en portales inmobiliarios, donde cada aviso informa el precio pedido y un conjunto de atributos: área, número de dormitorios y de baños, antigüedad del edificio, ubicación y una descripción libre. Esa información permite estudiar con un nivel de detalle inédito cómo se forma el precio de oferta.
+El alquiler es una vía de acceso a la vivienda cada vez más importante en Lima Metropolitana. En los distritos consolidados del centro y del sur de la ciudad, la oferta de departamentos se publica sobre todo en portales inmobiliarios, donde cada aviso informa el precio pedido, un conjunto de atributos estructurados (área, dormitorios, baños, antigüedad, ubicación) y una descripción libre. Muchos atributos relevantes, como la cochera, el amoblado o la vista, solo aparecen en ese texto.
 
-La literatura peruana sobre el tema ha seguido dos caminos. El primero es el enfoque hedónico clásico, que interpreta los coeficientes de una regresión del precio sobre los atributos como ``precios implícitos'' de cada característica \citep{rosen1974}. El índice hedónico de precios de departamentos del Banco Central de Reserva del Perú encuentra, por ejemplo, que el número de cocheras y el número de baños están entre las características más valoradas en Lima \citep{mundaca2018}. El segundo camino, más reciente, aplica aprendizaje automático para \emph{predecir} precios de venta o de alquiler \citep{cacnahuaray2024,barrientos2026}. Ambos son útiles, pero ninguno responde una pregunta contrafactual: \emph{¿cuánto cambiaría el precio de un departamento si tuviera un baño más, sin cambiar nada de lo demás?}
+Los estudios peruanos sobre el precio de la vivienda han seguido dos caminos (capítulo~\ref{cap:estado}). Unos construyen índices o modelos hedónicos \citep{mundaca2018,mayo2017}. Otros aplican aprendizaje automático para \emph{predecir} precios \citep{cacnahuaray2024,barrientos2026}. Varios coinciden en que la cochera es uno de los atributos más relevantes, pero ninguno responde una pregunta contrafactual: \emph{¿cuánto cambiaría el precio de un departamento si incluyera cochera, sin cambiar nada más?}
+
+\section{Punto de partida: el avance previo}
+
+Esta tesis parte de un análisis exploratorio propio sobre los mismos avisos (\texttt{notebook0} y \texttt{notebook1}). Ese trabajo limpió la base, describió el mercado (el precio y el área tienen una correlación de 0.83; los distritos de ``Lima Top'' son en promedio un 36\,\% más caros por m²; los departamentos más antiguos son más grandes y más baratos por m²) y contrastó ocho aseveraciones con pruebas de Tukey, Kruskal-Wallis, $t$, Spearman y regresión lineal. La octava ya planteaba, sin llamarla así, una pregunta causal: \emph{controlando el área, ¿cuánto aporta un baño adicional al precio?} La regresión respondía que entre S/\,195 y S/\,298.
+
+Ese avance tenía cuatro límites que motivan la tesis:
+\begin{enumerate}[label=(\roman*)]
+\item sus resultados eran asociaciones, no efectos;
+\item las variables de control se eligieron sin un modelo causal explícito y con una forma funcional lineal;
+\item no detectaba duplicados ni errores de ubicación;
+\item no podía estudiar atributos que solo aparecen en el texto, como la cochera.
+\end{enumerate}
+Las observaciones del asesor llevaron a reformular el trabajo como un estudio causal con un tratamiento binario bien definido, la cochera incluida. Se conserva el efecto de los baños como análisis secundario, en continuidad con la aseveración 8.
 
 \section{Problema}
 
-La respuesta a esa pregunta no se puede leer en una correlación ni en un coeficiente predictivo. Los departamentos con más baños son, en promedio, más grandes, más nuevos y están mejor ubicados; cada una de esas características también eleva el precio. En los datos de esta tesis, un baño adicional se asocia con un precio 45\,\% mayor cuando no se ajusta por nada, cifra que confunde el efecto del baño con el del tamaño y la zona. Al ajustar, aparece un segundo problema: ¿por qué variables ajustar? Agregar todas las disponibles no es inocuo. Algunas, como el precio por metro cuadrado, son consecuencia del precio y destruyen la estimación; otras, como los dormitorios, se deciden junto con los baños al diseñar el plano. Y queda un tercer problema que ningún ajuste resuelve: atributos no observados, como la calidad de los acabados, el piso o la vista, pueden influir tanto en el número de baños como en el precio.
+La respuesta no puede leerse en una correlación ni en un coeficiente predictivo. En los datos de esta tesis, los departamentos con cochera incluida se ofrecen un 63\,\% más caros que los que no la tienen. Pero son, en promedio, mucho más grandes (96 frente a 65\,m²), tienen más baños y se concentran en los distritos más caros. Separar el valor de la cochera del de esas características es el problema central.
 
-El aprendizaje automático causal, en particular \textit{Double/Debiased Machine Learning} \citep{chernozhukov2018}, permite ajustar por muchas variables de forma flexible sin imponer una forma funcional y conservar una inferencia válida. Pero la flexibilidad del estimador no sustituye la estrategia de identificación \citep{hunermund2023}. La contribución de esta tesis es aplicar ese marco a un atributo residencial concreto en Lima, haciendo explícitos los supuestos, auditando los datos y midiendo cuán frágil es la conclusión.
+Se suman tres dificultades. Primero, \textbf{la cochera no es una variable de la base}: hay que medirla a partir del texto del aviso, y esa medición tiene error. Segundo, \textbf{la ubicación es el confusor más importante}, pero solo es confiable cuando la dirección se geocodifica con exactitud. Tercero, \textbf{atributos no observados}, como la calidad del edificio, pueden influir a la vez en que exista cochera y en el precio.
+
+El aprendizaje automático causal, en particular \textit{Double/Debiased Machine Learning} \citep{chernozhukov2018}, permite ajustar por muchos confusores de forma flexible y conservar una inferencia válida. Pero la flexibilidad del estimador no sustituye la estrategia de identificación \citep{hunermund2023}. La contribución de esta tesis es aplicar ese marco a un atributo concreto de Lima, medido con inteligencia artificial, haciendo explícitos los supuestos, auditando los datos y midiendo la fragilidad de la conclusión.
 
 \section{Pregunta de investigación}
 
 \begin{quote}
-¿En qué medida un diseño de aprendizaje causal con ajuste espacial permite estimar, dentro de la población de avisos comparables, la prima contrafactual sobre el precio de oferta de alquiler asociada a un baño adicional, y cuán estable es esa estimación frente a confusión no observada y a las decisiones de modelado?
+¿En qué medida un diseño de aprendizaje causal con ajuste espacial y medición de atributos asistida por IA permite estimar, dentro de la población de avisos comparables, la prima contrafactual sobre el precio de oferta de alquiler asociada a que el departamento incluya cochera, y cuán estable es esa estimación frente a confusión no observada y a las decisiones de modelado?
 \end{quote}
 
 \section{Objetivos}
 
 \subsection{Objetivo general}
-Estimar y evaluar la robustez del efecto causal de un baño adicional sobre el precio de oferta del alquiler de departamentos en Lima Metropolitana. Para ello se usan métodos de aprendizaje causal ortogonal, controles espacialmente informados e inferencia que respeta la dependencia entre avisos.
+Estimar y evaluar la robustez del efecto causal de que un departamento incluya cochera sobre su precio de oferta de alquiler en Lima Metropolitana. Para ello se usan métodos de aprendizaje causal doblemente robustos, controles espaciales precisos, inferencia que respeta la dependencia entre avisos y una medición del tratamiento asistida por IA.
 
 \subsection{Objetivos específicos}
 \begin{enumerate}[label=\textbf{OE\arabic*.}, leftmargin=*]
-  \item Auditar, depurar y caracterizar los avisos y la selección de la muestra (procedencia, duplicados, exclusiones y perfil territorial).
-  \item Definir la intervención y justificar su identificación (estimando, DAG, conjunto de ajuste, población y amenazas no identificables).
-  \item Estimar y comparar la asociación hedónica con el ML causal (efecto principal con IC 95\,\%, diagnósticos de los modelos auxiliares y comparación de estimadores).
+  \item Auditar, depurar y caracterizar los avisos y la selección de la muestra (procedencia, duplicados, precisión de la geocodificación, exclusiones y perfil territorial).
+  \item Definir la intervención y justificar su identificación (estimando, DAG, conjunto de ajuste, soporte común y amenazas no identificables).
+  \item Estimar y comparar la asociación hedónica con el ML causal (efecto principal con IC 95\,\%, diagnósticos de propensión y de los modelos auxiliares, comparación de estimadores).
   \item Evaluar la variación socioespacial y la sensibilidad de los resultados (efectos por grupos, grilla de especificaciones, confusión no observada y dependencia espacial).
-  \item Cuantificar el aporte de atributos medidos mediante IA a partir del texto de los avisos. \textit{En este entregable no se ejecuta}: la sección~\ref{sec:oe5} justifica la decisión y deja el diseño preparado.
-  \item Verificar el comportamiento del procedimiento con una verdad conocida (validación semisintética: sesgo, RMSE y cobertura).
-  \item Garantizar la trazabilidad de los resultados: cada tabla y figura indica el notebook y el archivo que la generan.
+  \item Medir el tratamiento a partir del texto con IA, documentar la cobertura y el costo, y preparar su validación humana.
+  \item Verificar el comportamiento de los estimadores con una verdad conocida (validación semisintética: sesgo, RMSE y cobertura).
+  \item Garantizar la trazabilidad: cada tabla y figura indica el notebook y el archivo que la generan.
 \end{enumerate}
+
+Como \textbf{análisis secundario} se estima, sobre la misma muestra, el efecto de un baño adicional. Era la pregunta del entregable anterior y permite contrastar los resultados con un tratamiento estructurado, medido sin IA.
 
 \section{Hipótesis}
 
@@ -46,12 +63,12 @@ Las hipótesis no exigen por anticipado un efecto significativo ni positivo:
 
 \section{Alcance y aportes}
 
-\textbf{Alcance.} El objeto son los precios \emph{de oferta} mensuales de departamentos publicados en un portal, no contratos firmados ni el bienestar de los hogares. La cobertura son 13 distritos de Lima Metropolitana con avisos activos en marzo de 2025. La unidad de análisis es el aviso, con un manejo explícito de los avisos repetidos y de la agrupación por edificio y por zona. Los resultados no se extrapolan al parque residencial completo ni a otros distritos.
+\textbf{Alcance.} El objeto son los precios \emph{de oferta} mensuales de departamentos publicados en un portal, no contratos ni bienestar de los hogares. La cobertura son 13 distritos de Lima Metropolitana con avisos activos en marzo de 2025 cuya dirección se geocodificó con precisión exacta. La unidad de análisis es el aviso, con un manejo explícito de los duplicados y de la agrupación por edificio y por zona. Los resultados no se extrapolan al parque residencial ni a avisos con dirección imprecisa.
 
-\textbf{Aportes verificables.} (i) Una auditoría reproducible de la base, que documenta duplicados entre distritos y errores de geocodificación que no se habían detectado. (ii) Una estimación del efecto de un baño adicional con identificación explícita, inferencia agrupada y comparación con el enfoque hedónico. (iii) Una demostración empírica de cómo la elección de controles cambia el resultado. (iv) Un análisis de sensibilidad calibrado con confusores observados. (v) Una validación semisintética anclada en las covariables reales del mercado limeño.
+\textbf{Aportes verificables.} (i) Una auditoría reproducible de la base, que documenta duplicados entre distritos y la proporción de direcciones imprecisas. (ii) Un procedimiento barato y trazable para medir atributos desde el texto con IA (regex + fragmentos + esquema JSON fijo). (iii) La estimación del efecto de la cochera con soporte común, inferencia agrupada y comparación con el enfoque hedónico. (iv) Evidencia de que ese efecto varía según la escasez de cocheras en la zona. (v) Un análisis de sensibilidad calibrado y una validación semisintética anclada en las covariables reales, que también revela sus propias limitaciones.
 
-\textbf{Limitaciones principales.} El tratamiento no se asignó al azar, por lo que la interpretación causal depende de la ausencia de confusores omitidos importantes, supuesto que solo puede acotarse. La muestra corresponde a un único corte de un portal, y la antigüedad falta en el 25\,\% de la muestra final. Los atributos de calidad del texto aún no se extraen (OE5).
+\textbf{Limitaciones principales.} El tratamiento no se asignó al azar, por lo que la interpretación causal depende de la ausencia de confusores omitidos importantes, supuesto que solo puede acotarse. La medición con IA aún no tiene validación humana. Además, se supone que un aviso que no menciona cochera no la tiene. La muestra es un único corte de un portal.
 
 \section{Organización del documento}
 
-El capítulo~\ref{cap:estado} revisa la literatura. El capítulo~\ref{cap:marco} presenta el modelo causal, el estimando y el DAG. El capítulo~\ref{cap:datos} describe los datos, la auditoría y los métodos de estimación, y el capítulo~\ref{cap:diseno} el diseño de las pruebas de robustez y de la validación semisintética. El capítulo~\ref{cap:resultados} reporta los resultados, el~\ref{cap:discusion} los discute y el~\ref{cap:conclusiones} presenta las conclusiones por objetivo. Los anexos contienen el diccionario de variables, el registro de la búsqueda bibliográfica, el inventario de artefactos y las versiones de software.
+El capítulo~\ref{cap:estado} revisa la literatura. El~\ref{cap:marco} presenta el modelo causal, el estimando y el DAG. El~\ref{cap:datos} describe los datos, la auditoría, la medición con IA y los estimadores. El~\ref{cap:diseno} fija las pruebas de robustez y la validación semisintética. El~\ref{cap:resultados} reporta los resultados, el~\ref{cap:discusion} los discute y el~\ref{cap:conclusiones} presenta las conclusiones por objetivo.

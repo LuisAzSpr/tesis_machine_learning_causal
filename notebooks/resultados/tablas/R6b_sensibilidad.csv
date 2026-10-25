@@ -1,0 +1,7 @@
+indicador,valor
+% fuera de soporte común (promedio),7.554851292052657
+R² real de U con D (cf_d),0.04139119335857109
+R² real de U con Y (cf_y),0.04212373709323702
+cota media de sesgo,0.02401204123280306
+sesgo medio del IRM,0.042118032362178114
+% cubre IC + cota de sensibilidad,1.0

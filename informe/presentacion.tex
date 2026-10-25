@@ -1,4 +1,4 @@
-% Presentación para la sustentación (14 diapositivas, ~15 minutos). Compilar: ./tectonic.exe presentacion.tex
+% Presentación para la sustentación (15 diapositivas, ~15 minutos). Compilar: ./tectonic.exe presentacion.tex
 \documentclass[aspectratio=169,11pt]{beamer}
 \usepackage{fontspec}
 \usepackage[spanish,es-nodecimaldot,es-noshorthands]{babel}
@@ -6,7 +6,6 @@
 \graphicspath{{../notebooks/resultados/figuras/}}
 
 \definecolor{azul}{HTML}{1F3A5F}
-\definecolor{rojo}{HTML}{C0392B}
 \definecolor{gris}{HTML}{6B7280}
 \setbeamercolor{frametitle}{fg=azul}
 \setbeamercolor{title}{fg=azul}
@@ -17,8 +16,8 @@
 \setbeamertemplate{itemize items}[circle]
 \newcommand{\dato}[2]{\begin{minipage}[t]{0.42\linewidth}\centering{\Huge\bfseries\color{azul}#1}\\[2pt]{\small #2}\end{minipage}}
 
-\title{Efecto causal de un baño adicional en el precio de oferta de alquiler en Lima Metropolitana}
-\subtitle{Inferencia causal espacial asistida por aprendizaje automático}
+\title{Efecto causal de la cochera incluida en el precio de oferta de alquiler en Lima Metropolitana}
+\subtitle{Inferencia causal espacial asistida por inteligencia artificial}
 \author{Luis Azaña}
 \institute{Seminario de Tesis 2}
 \date{2026}
@@ -34,15 +33,15 @@
 \begin{columns}[T]
 \column{0.55\textwidth}
 \begin{itemize}
-\item Pregunta contrafactual: \textbf{¿cuánto cambiaría el alquiler si el mismo departamento tuviera un baño más?}
-\item Los departamentos con más baños son también más grandes, más nuevos y mejor ubicados.
+\item Pregunta contrafactual: \textbf{¿cuánto cambiaría el alquiler si el mismo departamento incluyera cochera?}
+\item Los departamentos con cochera son también más grandes (96 vs 65\,m²) y están en zonas más caras.
+\item La cochera \textbf{no es un campo de la base}: está en el texto del aviso.
 \item Los estudios locales \textbf{predicen} precios (hedónico, XGBoost); no identifican efectos.
-\item ML flexible $\neq$ causalidad: hace falta un modelo causal explícito.
 \end{itemize}
 \column{0.42\textwidth}
 \vspace{0.8cm}
 \begin{center}
-\dato{+45\%}{asociación\\sin ajustar}\hspace{0.5em}\dato{?}{efecto\\causal}
+\dato{+63\%}{diferencia\\sin ajustar}\hspace{0.5em}\dato{?}{efecto\\causal}
 \end{center}
 \end{columns}
 \end{frame}
@@ -54,22 +53,22 @@
 \textbf{Alcance}
 \begin{itemize}\small
 \item Precio \emph{de oferta} mensual, no contrato.
-\item Avisos de un portal, 13 distritos, marzo 2025.
-\item Tratamiento: nº de baños (1--5). Resultado: log(precio).
+\item Avisos de un portal, 13 distritos, marzo 2025, \textbf{solo direcciones exactas (ROOFTOP)}.
+\item Tratamiento: cochera incluida (sí/no). Secundario: nº de baños.
 \end{itemize}
 \textbf{Objetivos}
 \begin{itemize}\small
 \item OE1 auditoría · OE2 identificación · OE3 estimación
-\item OE4 heterogeneidad y sensibilidad · OE6 simulación · OE7 trazabilidad
-\item OE5 (IA sobre el texto): \textcolor{gris}{diferido}
+\item OE4 heterogeneidad y sensibilidad · OE5 medición con IA
+\item OE6 simulación · OE7 trazabilidad
 \end{itemize}
 \column{0.47\textwidth}
 \textbf{Hipótesis} (sin dirección obligatoria)
 \begin{itemize}\small
 \item H1: el ajuste cambia la asociación.
-\item H2: la composición causal de los controles importa más que el algoritmo.
-\item H3: hay heterogeneidad, solo si la precisión la respalda.
-\item H4: la solidez depende de la fuerza de los confusores no observados.
+\item H2: los controles importan más que el algoritmo.
+\item H3: el efecto varía por zona o tamaño (si la precisión lo respalda).
+\item H4: la solidez depende de los confusores no observados.
 \end{itemize}
 \end{columns}
 \end{frame}
@@ -77,182 +76,222 @@
 % 4 -----------------------------------------------------------------
 \begin{frame}{Datos: auditoría de la muestra (R1)}
 \begin{columns}[T]
-\column{0.42\textwidth}
-\small
-\begin{tabular}{lr}
+\column{0.44\textwidth}
+\footnotesize
+\begin{tabular}{@{}lr@{}}
 \toprule
 Paso & N \\
 \midrule
 Archivo crudo & 3\,739 \\
 Variables núcleo completas & 3\,516 \\
-\textbf{$-$ duplicados} (83 en 2 distritos) & $-$243 \\
-\textbf{$-$ geocodificación incoherente} & $-$26 \\
-$-$ reglas de depuración F1--F6 & $-$219 \\
+\textbf{$-$ duplicados} & $-$243 \\
+$-$ geocodificación incoherente & $-$26 \\
+\textbf{$-$ dirección no exacta} & $-$967 \\
+$-$ reglas de depuración & $-$60 \\
 \midrule
-\textbf{Muestra analítica} & \textbf{3\,028} \\
+\textbf{Muestra analítica} & \textbf{2\,220} \\
 \bottomrule
 \end{tabular}
 
-\vspace{0.4cm}
-\begin{itemize}\footnotesize
-\item 2\,178 edificios (37\,\% de avisos comparte edificio).
-\item Antigüedad faltante: 25\,\% (0\,\% en Miraflores, 47\,\% en Cercado).
-\end{itemize}
-\column{0.56\textwidth}
+\vspace{0.3cm}
+\footnotesize La ubicación es el confusor más fuerte: solo se usan direcciones con el edificio exacto. Con todas las precisiones, el efecto de los baños se inflaba (5.1 vs 3.8\,\%).
+\column{0.54\textwidth}
 \includegraphics[width=\textwidth]{F2_territorio.png}
 \end{columns}
 \end{frame}
 
 % 5 -----------------------------------------------------------------
-\begin{frame}{Intervención, estimando y DAG}
+\begin{frame}{Medición de la cochera con IA (OE5)}
 \begin{columns}[T]
-\column{0.62\textwidth}
-\includegraphics[width=\textwidth]{F1_dag.png}
-\column{0.36\textwidth}\small
-\[Y=\theta\,T+g(X)+\varepsilon\]
-\begin{itemize}
-\item $\theta$: efecto de \textbf{un baño más} con área, dormitorios, antigüedad y ubicación fijos.
-\item \textbf{Ajustar}: confusores previos (azul).
-\item \textbf{No ajustar}: precio/m² (descendiente de $Y$), baños/dormitorio (contiene $T$).
-\item \textbf{Amenaza}: calidad no observada $U$.
-\end{itemize}
+\column{0.52\textwidth}\small
+\begin{enumerate}
+\item \textbf{Regex}: ¿menciona cochera/estacionamiento? Si no $\rightarrow$ sin cochera (659 avisos, sin costo).
+\item \textbf{Fragmento} \texttt{texto[x-200:x+200]}; se enmascaran teléfonos y correos.
+\item \textbf{gpt-4.1-mini}, temperatura 0, JSON fijo:\\
+{\scriptsize\texttt{\{"cochera":"si", "precio\_extra":0, \ldots\}}}
+\item Piloto de 25 avisos: se corrigieron 3 errores del prompt.
+\end{enumerate}
+\textbf{Costo total: 0.76 USD} (1\,561 avisos enviados).
+\column{0.46\textwidth}\small
+\begin{tabular}{lr}
+\toprule
+Clasificación & N \\
+\midrule
+Cochera incluida ($D=1$) & 1\,095 \\
+Sin mención ($D=0$) & 659 \\
+``No tiene'' según la IA ($D=0$) & 297 \\
+Costo extra (excluido) & 150 \\
+Ambigua (excluido) & 19 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.3cm}
+\footnotesize Validación humana: 249 avisos preparados, \textbf{pendiente}.
 \end{columns}
 \end{frame}
 
 % 6 -----------------------------------------------------------------
-\begin{frame}{Método: Double ML con dependencia espacial}
-\begin{enumerate}
-\item Predecir el precio y los baños a partir de los confusores con \textit{gradient boosting} (relaciones no lineales).
-\item \textit{Cross-fitting}: cada aviso se predice con modelos entrenados \textbf{sin su edificio} (5 folds agrupados $\times$ 10 repeticiones).
-\item Residuos: $\tilde Y=Y-\hat E[Y|X]$, \ $\tilde T=T-\hat E[T|X]$.
-\item Efecto: pendiente de $\tilde Y$ sobre $\tilde T$.
-\item Inferencia \textbf{agrupada por edificio} (alternativa: bloques de 1 km).
-\end{enumerate}
-\vspace{0.3cm}
-\small Además: grilla preespecificada de controles, sensibilidad a confusores omitidos, efectos por grupos (GATE), I de Moran y validación semisintética.
+\begin{frame}{Intervención, estimando y DAG}
+\begin{columns}[T]
+\column{0.6\textwidth}
+\includegraphics[width=\textwidth]{F1b_dag_cochera.png}
+\column{0.38\textwidth}\small
+\begin{itemize}
+\item \textbf{Estimando}: ATE de tener cochera incluida, en la población con soporte común (propensión 0.05--0.95).
+\item \textbf{Ajustar}: área, dormitorios, baños, antigüedad, ubicación.
+\item \textbf{No ajustar}: precio/m² (descendiente de $Y$).
+\item \textbf{Amenaza}: calidad del edificio ($U$) y error de medición del texto.
+\end{itemize}
+\end{columns}
 \end{frame}
 
 % 7 -----------------------------------------------------------------
-\begin{frame}{Resultado principal (R3)}
-\begin{columns}[c]
-\column{0.38\textwidth}
-\begin{center}
-{\Huge\bfseries\color{azul} +5.3\%}\\[4pt]
-{\small por baño adicional}\\[2pt]
-{\small IC 95\,\%: 1.9 -- 8.8\,\%}\\[10pt]
-{\Large\bfseries\color{azul} $\approx$ S/ 133}\\[2pt]
-{\small al mes (alquiler de S/ 2\,500)}
-\end{center}
-\column{0.6\textwidth}
-\includegraphics[width=\textwidth]{F4_estimadores.png}
-\end{columns}
+\begin{frame}{Método: Double ML interactivo (IRM / AIPW)}
+\begin{enumerate}
+\item \textbf{Propensión} $m(X)=P(\text{cochera}\mid X)$ con un clasificador de \textit{gradient boosting}.
+\item \textbf{Resultado} $g_1(X)$, $g_0(X)$: precio esperado con y sin cochera (un modelo por grupo).
+\item \textit{Cross-fitting} con 5 folds \textbf{agrupados por edificio} $\times$ 10 repeticiones.
+\item Score doblemente robusto, promediado en el soporte común:
+\[\phi=g_1-g_0+\frac{D(Y-g_1)}{m}-\frac{(1-D)(Y-g_0)}{1-m}\]
+\item Inferencia \textbf{agrupada por edificio} (alternativa: bloques de 1\,km).
+\end{enumerate}
 \vspace{0.2cm}
-\footnotesize Sin ajustar: 45.1\,\% $\rightarrow$ hedónico lineal: 8.4\,\% $\rightarrow$ DML: 5.3\,\%. Los tres \textit{learners} de árboles coinciden (5.2--5.8\,\%). \textbf{H1 se confirma.}
+\small Además: soporte común y balance, grilla de especificaciones, sensibilidad, GATE, I de Moran y simulación.
 \end{frame}
 
 % 8 -----------------------------------------------------------------
-\begin{frame}{¿Qué controles? La grilla de especificaciones (R4)}
-\begin{columns}[c]
-\column{0.6\textwidth}
-\includegraphics[width=\textwidth]{F4b_especificaciones.png}
-\column{0.38\textwidth}\small
+\begin{frame}{Soporte común y balance (R2)}
+\centering\includegraphics[height=0.5\textheight]{F3_soporte_cochera.png}\par
+\small
 \begin{itemize}
-\item Sin área: \textbf{20.4\,\%} (se cuadruplica).
-\item + precio/m²: \textbf{$\approx$ 0} (control inadmisible).
-\item + baños/dormitorio: errático.
-\item Sin deduplicar, filtro mínimo, sin geocodificación aproximada, otras particiones: \textbf{4.2--5.8\,\%}.
+\item AUC de la propensión = 0.82; solo el \textbf{5\,\%} de los avisos queda fuera de [0.05, 0.95] (1\,949 en soporte común).
+\item Antes de ponderar: diferencias de 0.92 (área) y 0.71 (baños). Después: todas $<0.05$ $\rightarrow$ grupos comparables.
 \end{itemize}
-\textbf{H2 se confirma}: la composición causal importa más que el algoritmo.
-\end{columns}
 \end{frame}
 
 % 9 -----------------------------------------------------------------
-\begin{frame}{Robustez a confusores no observados (R5)}
+\begin{frame}{Resultado principal (R3)}
 \begin{columns}[c]
-\column{0.5\textwidth}
-\includegraphics[width=\textwidth]{F5_sensibilidad.png}
-\column{0.48\textwidth}\small
-\begin{itemize}
-\item \textbf{RV = 0.075}: un $U$ que explique el 7.5\,\% de la varianza residual de los baños \emph{y} del precio anula el efecto.
-\item $U$ tan fuerte como la \textbf{antigüedad} $\rightarrow$ 3.6\,\% (sigue siendo $>0$).
-\item $U$ tan fuerte como la \textbf{ubicación} $\rightarrow$ 2.5\,\% (el IC incluye 0).
-\item $U$ tan fuerte como el \textbf{área} $\rightarrow$ cambia de signo.
-\end{itemize}
-\textbf{H4 se confirma}: fragilidad \textbf{moderada}.
+\column{0.36\textwidth}
+\begin{center}
+{\Huge\bfseries\color{azul} +7.5\%}\\[4pt]
+{\small por tener cochera incluida}\\[2pt]
+{\small IC 95\,\%: 3.7 -- 11.4\,\%}\\[10pt]
+{\Large\bfseries\color{azul} $\approx$ S/ 199}\\[2pt]
+{\small al mes (alquiler de S/ 2\,650)}
+\end{center}
+\column{0.62\textwidth}
+\includegraphics[width=\textwidth]{F4c_estimadores_cochera.png}
 \end{columns}
+\vspace{0.2cm}
+\footnotesize Sin ajustar: 63\,\% $\rightarrow$ hedónico 7.8\,\% · PLR 7.1\,\% · IRM 7.5\,\%. Sin recorte, el IRM es inestable (IC de $-2.7$ a 11.9\,\%). \textbf{H1 se confirma.}
 \end{frame}
 
 % 10 ----------------------------------------------------------------
-\begin{frame}{Heterogeneidad y dependencia espacial (R7)}
-\centering\includegraphics[height=0.5\textheight]{F7_heterogeneidad.png}\par
-\small
+\begin{frame}{¿Qué decisiones importan? (R4)}
+\begin{columns}[c]
+\column{0.5\textwidth}\small
+\begin{tabular}{lr}
+\toprule
+Especificación & Efecto \\
+\midrule
+Principal & 7.6\,\% \\
+Sin ubicación & \textbf{21.7\,\%} \\
+Sin área & 11.4\,\% \\
+Sin baños ni dormitorios & 9.1\,\% \\
++ precio/m² (prohibido) & $-0.5$\,\% \\
+Solo ``incluida'' explícita & 7.9\,\% \\
+Costo extra también tratado & 5.3\,\% \\
+Bloques de 1\,km & 7.7\,\% \\
+\bottomrule
+\end{tabular}
+\column{0.48\textwidth}\small
 \begin{itemize}
-\item Sin diferencias significativas por clase de distrito ni por tamaño (Wald $p>0.6$) $\rightarrow$ \textbf{H3 sin respaldo} (no concluyente: baja potencia).
-\item Residuos del precio con autocorrelación espacial (I de Moran = 0.06, $p=0.001$): EE agrupados 31--39\,\% mayores que los iid; el IC sigue excluyendo el 0.
+\item Las cocheras abundan en distritos caros: \textbf{sin ubicación el efecto se triplica}.
+\item El control prohibido lo anula.
+\item Las alternativas de medición se mueven en la dirección esperada.
 \end{itemize}
+\textbf{H2 se confirma}.
+\end{columns}
 \end{frame}
 
 % 11 ----------------------------------------------------------------
-\begin{frame}{Validación semisintética: ¿funciona con verdad conocida? (R6)}
-\centering\includegraphics[height=0.5\textheight]{F6_semisintetico.png}\par
-\footnotesize
+\begin{frame}{Heterogeneidad: la cochera vale más donde escasea (R7)}
+\centering\includegraphics[height=0.52\textheight]{F7c_heterogeneidad_cochera.png}\par
+\small
 \begin{itemize}
-\item Covariables reales, $\theta_0=0.05$, 600 réplicas. \textbf{Sin $U$}: DML insesgado y cobertura 95\,\%; el hedónico lineal se sesga (+0.025; cobertura 50\,\%).
-\item \textbf{Con $U$}: el DML se sesga y el IC no lo detecta; la \textbf{cota de sensibilidad sí} recupera la cobertura (92--96\,\%).
-\item Heterogeneidad real ($0.03$ vs $0.08$) detectada solo el 24\,\% de las veces. Dependencia espacial: hay que agrupar al nivel correcto.
+\item Miraflores, San Isidro, Barranco, Lince: \textbf{1.5\,\%} (n.s.) · clase2: \textbf{10\,\%} · clase3: \textbf{18\,\%}. Wald $p=0.0001$ $\rightarrow$ \textbf{H3 se confirma}.
+\item Interpretación (hipótesis): donde casi todos los avisos tienen cochera, no se paga extra por ella.
 \end{itemize}
 \end{frame}
 
 % 12 ----------------------------------------------------------------
-\begin{frame}{Medición con IA (OE5) y límites}
-\begin{columns}[T]
-\column{0.48\textwidth}
-\textbf{OE5: diferido, con diseño listo}
-\begin{itemize}\small
-\item El texto de los avisos menciona vista, ascensor, acabados\ldots: \textit{proxies} de la calidad $U$.
-\item Requiere: taxonomía, 200--300 avisos etiquetados a mano, precisión/\textit{recall}, posición causal en el DAG.
-\item Especificación S5 reservada.
+\begin{frame}{Robustez a confusores no observados (R5)}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\includegraphics[width=\textwidth]{F5c_sensibilidad_cochera.png}
+\column{0.48\textwidth}\small
+\begin{itemize}
+\item \textbf{RV = 0.105}: un $U$ que explique el 10.5\,\% de la variación residual de la cochera \emph{y} del precio anula el efecto.
+\item $U$ tan fuerte como la \textbf{antigüedad} $\rightarrow$ 0.4\,\%.
+\item $U$ tan fuerte como la \textbf{ubicación} $\rightarrow$ signo negativo.
+\item La simulación muestra que esta cota es \textbf{optimista}: la fragilidad podría ser mayor.
 \end{itemize}
-\column{0.48\textwidth}
-\textbf{Límites}
-\begin{itemize}\small
-\item Ignorabilidad: se acota, no se prueba.
-\item Un portal, un mes, precio de oferta.
-\item Antigüedad faltante en el 25\,\%.
-\item Efecto lineal por baño; sin diagnóstico formal de soporte común.
-\end{itemize}
+\textbf{H4 se confirma}: resultado frágil.
 \end{columns}
 \end{frame}
 
 % 13 ----------------------------------------------------------------
-\begin{frame}{Conclusiones}
+\begin{frame}{Validación semisintética (R6) y análisis de baños}
+\begin{columns}[T]
+\column{0.5\textwidth}\small
+\textbf{Simulación} (800 réplicas, covariables reales)
 \begin{itemize}
-\item \textbf{Respuesta}: bajo los supuestos del DAG, un baño adicional eleva el precio de oferta en \textbf{5.3\,\%} (1.9--8.8\,\%), unos S/\,133 al mes.
-\item \textbf{Hallazgo observacional}: el 86\,\% de la asociación bruta se explica por tamaño, antigüedad y ubicación.
-\item \textbf{Metodológico}: el hedónico lineal sobreestima incluso sin confusión omitida; los malos controles destruyen la estimación.
-\item \textbf{Fragilidad}: moderada; resiste un confusor como la antigüedad, no como la ubicación.
-\item \textbf{No se afirma}: que construir un baño sea rentable, ni que el efecto valga para contratos o para toda Lima.
+\item \textbf{Cochera sin $U$}: los tres métodos aciertan (cobertura 94--96\,\%).
+\item \textbf{Cochera con $U$}: todos se sesgan ($+0.04$); la cota subestima el sesgo.
+\item \textbf{Baños sin $U$}: DML insesgado; el hedónico lineal sobreestima.
+\item \textbf{Baños con $U$}: la cota sí funciona (cobertura 95--98\,\%).
 \end{itemize}
+\column{0.48\textwidth}\small
+\textbf{Un baño adicional} (secundario)
+\begin{itemize}
+\item \textbf{+3.8\,\%} (1.7--6.0\,\%) $\approx$ S/ 100 al mes.
+\item Controlando por cochera: 3.5\,\%.
+\item Con direcciones imprecisas subía a 5.1\,\%.
+\item Sin heterogeneidad; frágil frente a un $U$ como la antigüedad.
+\end{itemize}
+\end{columns}
 \end{frame}
 
 % 14 ----------------------------------------------------------------
+\begin{frame}{Conclusiones y límites}
+\begin{itemize}
+\item \textbf{Respuesta}: bajo los supuestos del DAG, tener cochera incluida eleva el precio de oferta en \textbf{7.5\,\%} (3.7--11.4\,\%), unos S/\,199 al mes; casi nada en los distritos más caros y hasta 18\,\% donde escasea.
+\item \textbf{Observacional}: casi todo el 63\,\% bruto es tamaño y zona.
+\item \textbf{Metodológico}: la IA permite medir un atributo del texto por menos de 1 USD; la geocodificación exacta cambia los resultados.
+\item \textbf{Límites}: confusor de calidad del edificio, medición con IA sin validación humana, cota de sensibilidad optimista, un portal y un mes.
+\item \textbf{No se afirma}: que agregar una cochera sea rentable, ni que valga para contratos o para toda Lima.
+\end{itemize}
+\end{frame}
+
+% 15 ----------------------------------------------------------------
 \begin{frame}{Contribución y continuidad}
 \begin{columns}[T]
 \column{0.48\textwidth}
 \textbf{Contribución verificable}
 \begin{itemize}\small
-\item Auditoría reproducible (duplicados entre distritos, geocodificación).
-\item Efecto con identificación explícita e inferencia agrupada.
-\item Demostración empírica de buenos y malos controles.
-\item Sensibilidad calibrada y validada con simulación.
+\item Auditoría reproducible (duplicados, precisión de la dirección).
+\item Medición barata y trazable de atributos con IA.
+\item Efecto con soporte común, balance e inferencia agrupada.
+\item Evidencia de heterogeneidad por escasez.
 \end{itemize}
 \column{0.48\textwidth}
-\textbf{Siguiente entregable}
+\textbf{Siguiente paso}
 \begin{itemize}\small
-\item OE5: \textit{proxies} de calidad desde el texto (S5).
-\item Tratamiento binario (cochera) con DML-IRM y soporte común.
-\item Repositorio con una orden reproducible y pruebas.
-\item Más meses y portales para estudiar la heterogeneidad.
+\item Validación humana de 249 avisos.
+\item Medir la calidad del edificio desde el texto.
+\item Mejorar la cota de sensibilidad binaria.
+\item Repositorio con una orden reproducible.
 \end{itemize}
 \end{columns}
 \vspace{0.6cm}
