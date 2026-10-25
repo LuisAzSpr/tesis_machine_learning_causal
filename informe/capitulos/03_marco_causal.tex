@@ -2,73 +2,76 @@
 
 \section{Resultados potenciales y estimando}
 
-Sea $i$ un aviso de alquiler. Su tratamiento $T_i\in\{1,\dots,5\}$ es el número de baños y su resultado $Y_i=\ln P_i$ el logaritmo del precio mensual de oferta. Con el lenguaje de resultados potenciales \citep{imbens2015,hernan2020}, $Y_i(t)$ es el log-precio que se pediría por el departamento $i$ si tuviera $t$ baños y todos sus demás atributos previos (área, ubicación, antigüedad, dormitorios) se mantuvieran fijos. La intervención de interés es \emph{agregar un baño}. Se entiende como una modificación del departamento en el plano, no como un cambio de departamento.
+Sea $i$ un aviso de alquiler y $D_i\in\{0,1\}$ el tratamiento: $D_i=1$ si el departamento incluye cochera en el alquiler y $D_i=0$ si no tiene cochera. El resultado es $Y_i=\ln P_i$, el logaritmo del precio mensual de oferta. En el lenguaje de resultados potenciales \citep{imbens2015,hernan2020}, $Y_i(1)$ y $Y_i(0)$ son los log-precios que se pedirían por el mismo departamento con y sin cochera incluida, con el resto de sus atributos fijos. El estimando principal es el efecto promedio del tratamiento en la población con soporte común:
+\begin{equation}\label{eq:ate}
+\theta = E\big[\,Y(1)-Y(0)\;\big|\;X\in\mathcal{S}\,\big],\qquad \mathcal{S}=\{x:\;0.05\le m(x)\le0.95\},
+\end{equation}
+donde $m(x)=P(D=1\mid X=x)$ es la propensión. El efecto en porcentaje es $100\,(e^\theta-1)$. En soles se reporta solo para un alquiler de referencia fijado de antemano: la mediana de la muestra (S/\,2\,650).
 
-Dado que $T$ es un conteo, el estimando se define dentro del modelo parcialmente lineal \citep{robinson1988}:
+La restricción a $\mathcal{S}$ es deliberada. Para un departamento cuyo perfil hace casi seguro que tenga cochera (o que no la tenga), los datos no contienen comparaciones creíbles, y el efecto en ese perfil solo podría obtenerse extrapolando. Recortar cambia la población a la que se refiere el resultado; por eso se reporta también el efecto sin recorte.
+
+\paragraph{Tratamiento secundario.} Para el número de baños $T\in\{1,\dots,5\}$, un conteo, el estimando es el coeficiente $\theta_T$ del modelo parcialmente lineal \citep{robinson1988}:
 \begin{equation}\label{eq:plr}
-Y = \theta\,T + g(X) + \varepsilon,\qquad E[\varepsilon\mid T, X]=0,
+Y = \theta_T\,T + g(X) + \varepsilon,\qquad T = m_T(X) + V,
 \end{equation}
-\begin{equation}\label{eq:plr2}
-T = m(X) + V,\qquad E[V\mid X]=0,
-\end{equation}
-donde $X$ es el vector de confusores observados y $g$ y $m$ son funciones desconocidas y posiblemente no lineales. El parámetro $\theta$ es el cambio esperado en el log-precio por un baño adicional. En porcentaje, el efecto es $100\,(e^\theta-1)$; en soles, se reporta solo para un alquiler de referencia fijado de antemano, la mediana de la muestra (S/\,2\,500).
-
-Si el efecto de un baño varía entre departamentos, $\theta$ no es el promedio simple de los efectos individuales. Es un promedio ponderado por la varianza condicional del tratamiento, $\theta = E[\mathrm{Var}(T\mid X)\,\theta(X)]/E[\mathrm{Var}(T\mid X)]$. Pesan más los tipos de departamento en los que el número de baños varía más entre unidades comparables. Esta interpretación se mantiene en todo el documento y se verifica en la validación semisintética (escenario E5).
+interpretado como el efecto medio de un baño adicional, ponderado por la varianza condicional de $T$.
 
 \section{Supuestos de identificación}
 
-$\theta$ se identifica con los datos observados bajo los supuestos siguientes. Ninguno es verificable por completo; los capítulos~\ref{cap:diseno} y~\ref{cap:resultados} los ponen a prueba hasta donde es posible.
-
 \begin{enumerate}[leftmargin=*]
-\item \textbf{Ignorabilidad condicional.} $Y(t)\perp T\mid X$ para todo $t$: dos departamentos iguales en $X$ difieren en número de baños por razones no relacionadas con su precio potencial. Es el supuesto más fuerte. Se viola si existe una variable omitida $U$ (por ejemplo, la calidad de los acabados) que afecte a la vez a los baños y al precio.
-\item \textbf{Consistencia y versiones del tratamiento.} ``Un baño más'' tiene el mismo significado entre avisos. En la práctica puede tratarse de un medio baño o de un baño completo; el portal no lo distingue, y esta heterogeneidad se absorbe en $\theta$.
-\item \textbf{Variación suficiente (positividad).} Para cada perfil $X$ debe haber variación en el número de baños. En el modelo~\eqref{eq:plr} esto se refleja en la varianza del residuo $V$: si $T$ se predijera perfectamente desde $X$, no habría variación para identificar $\theta$. El diagnóstico formal del soporte común queda fuera del alcance de este entregable (sección~\ref{sec:limites}).
-\item \textbf{Ausencia de interferencia.} El número de baños de un departamento no afecta el precio de otro. Es plausible para un atributo interno. Los choques comunes de edificio o de zona no violan este supuesto, pero inducen dependencia entre observaciones y se tratan con inferencia agrupada.
-\item \textbf{Linealidad en $T$.} El modelo~\eqref{eq:plr} supone que cada baño adicional tiene el mismo efecto medio en log-precio. El conteo de baños se concentra en 1--3 (97\,\% de la muestra), de modo que $\theta$ resume sobre todo los pasos de 1 a 2 y de 2 a 3 baños.
+\item \textbf{Ignorabilidad condicional.} $Y(1),Y(0)\perp D\mid X$: entre departamentos iguales en $X$, que uno tenga cochera no depende de su precio potencial. Se viola si un factor omitido (por ejemplo, la calidad del edificio) afecta a la vez la cochera y el precio.
+\item \textbf{Positividad (soporte común).} $0<m(X)<1$. Se diagnostica con la distribución de la propensión por brazo y se impone con el recorte $[0.05,0.95]$.
+\item \textbf{Consistencia y versiones del tratamiento.} ``Cochera incluida'' agrupa una o más cocheras, techadas o no. Los avisos con cochera de \emph{costo extra} son otra versión del tratamiento (el precio no la incluye) y se excluyen del análisis principal.
+\item \textbf{Medición del tratamiento.} $D$ se mide desde el texto. Se supone que un aviso que no menciona cochera no la tiene. Un error de clasificación no diferencial tiende a atenuar el efecto; uno diferencial puede sesgarlo en cualquier dirección.
+\item \textbf{Ausencia de interferencia.} La cochera de un departamento no afecta el precio de otro. Los choques comunes de edificio o de zona se tratan con inferencia agrupada.
 \end{enumerate}
 
 \section{Grafo causal (DAG)}
 
-La figura~\ref{fig:dag} presenta el modelo causal supuesto. Se construyó con conocimiento del dominio y con el orden temporal de las decisiones. La ubicación del terreno y la época de construcción preceden al diseño del departamento. El área y el número de dormitorios se deciden con el plano, junto con los baños. El precio se fija al publicar el aviso.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{F1b_dag_cochera.png}
+\caption{DAG del efecto de la cochera (F1b). Azul: confusores ajustados; gris punteado: confusor no observado $U$; lila punteado: la cochera se observa a través del texto del aviso.}\label{fig:dag}
+\origen{\texttt{notebook3b\_efecto\_cochera.ipynb}, sección 1 $\rightarrow$ \texttt{F1b\_dag\_cochera.png}.}
+\end{figure}
+
+La figura~\ref{fig:dag} presenta el modelo causal supuesto, construido con conocimiento del dominio y con el orden temporal de las decisiones. La ubicación y la época de construcción del edificio preceden al diseño. El área, los dormitorios, los baños y la dotación de cocheras se definen en el proyecto. El precio se fija al publicar. Por el criterio \textit{back-door} \citep{pearl2009}, el \textbf{conjunto de ajuste} es: log del área, dormitorios, baños, antigüedad (con un indicador de faltante), latitud, longitud, días publicado, distrito y tipo de lugar devuelto por el geocodificador. El camino $D\leftarrow U\rightarrow Y$ no puede bloquearse con los datos; es la amenaza principal.
+
+Para los baños (análisis secundario) se usa el DAG del entregable anterior (figura~\ref{fig:dag_banos}). Su conjunto de ajuste es el mismo sin los baños; la cochera se agrega como control en una especificación alternativa.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{F1_dag.png}
-\caption{DAG del estudio (F1). Azul: confusores ajustados; gris punteado: confusor no observado $U$; naranja: descendiente del resultado (no ajustar); lila: selección de publicación.}\label{fig:dag}
-\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 1 $\rightarrow$ \texttt{resultados/figuras/F1\_dag.png}.}
+\includegraphics[width=0.85\textwidth]{F1_dag.png}
+\caption{DAG del análisis secundario: efecto de un baño adicional (F1).}\label{fig:dag_banos}
+\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 1 $\rightarrow$ \texttt{F1\_dag.png}.}
 \end{figure}
-
-Según el criterio \textit{back-door} \citep{pearl2009}, para identificar el efecto $T\rightarrow Y$ basta con bloquear todos los caminos no causales entre $T$ e $Y$ que entran en $T$ por la espalda. En el DAG esos caminos pasan por la ubicación, la antigüedad, el área y los dormitorios, que forman el \textbf{conjunto de ajuste principal (S1)}. Se agregan los días que lleva publicado el aviso y el tipo de lugar devuelto por el geocodificador, para absorber diferencias de antigüedad del aviso y de error de medición de la ubicación. El camino $T\leftarrow U\rightarrow Y$ no puede bloquearse con los datos disponibles; es la amenaza principal.
 
 \section{Papel de cada variable: buenos y malos controles}
 
-Siguiendo a \citet{cinelli2024}, la tabla~\ref{tab:roles} clasifica las variables disponibles. La clasificación no proviene de los datos (las tres estructuras $A\rightarrow B$, $A\leftarrow B$ y $A\leftarrow C\rightarrow B$ generan la misma correlación); es un supuesto argumentado.
-
 \begin{table}[H]
 \centering\small
-\caption{Papel de cada variable respecto del efecto de los baños sobre el precio}\label{tab:roles}
+\caption{Papel de cada variable respecto del efecto de la cochera sobre el precio}\label{tab:roles}
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{2.4cm}X}
 \toprule
 Variable & Papel & ¿Ajustar? & Justificación \\
 \midrule
-Ubicación (distrito, latitud, longitud) & Confusor & Sí & Precede al diseño; define el tipo de edificio y el precio \\
-Área & Confusor & Sí & El tamaño condiciona cuántos baños caben y eleva el precio \\
-Antigüedad & Confusor & Sí & La época de construcción fija estándares de diseño y afecta el precio \\
-Dormitorios & Confusor dudoso & Sí (S1); no (S4b) & Se decide junto con los baños; si fuera parte del mismo ``paquete'', ajustarla bloquearía parte del efecto. Se reportan ambas especificaciones \\
-Días publicado & Previa al precio observado & Sí & Absorbe diferencias entre avisos nuevos y antiguos \\
-Tipo y precisión de geocodificación & Artefacto de medición & Tipo sí; precisión en S7b & No causa el precio; corrige error en la ubicación \\
-Precio por m² & Descendiente de $Y$ & \textbf{No} & Es el resultado dividido por el área: ajustar por él elimina el efecto por construcción \\
-Baños por dormitorio & Función de $T$ & \textbf{No} & Contiene el tratamiento \\
-Acabados, piso, vista, seguridad & Confusor no observado $U$ & Imposible & Amenaza principal; se acota con análisis de sensibilidad \\
-Publicación en el portal & Selección & Condicionado por diseño & Solo se observan avisos publicados; los resultados valen para esa población \\
+Ubicación (distrito, lat., lon.) & Confusor & Sí & Precede al proyecto; define la escasez de cocheras y el precio \\
+Área & Confusor & Sí & Departamentos grandes suelen venir con cochera y cuestan más \\
+Baños y dormitorios & Confusores & Sí & Reflejan el estándar del proyecto; no son consecuencia de la cochera \\
+Antigüedad & Confusor & Sí & Los edificios antiguos tienen menos cocheras y distinto precio \\
+Días publicado, tipo de geocodificación & Previas / artefacto & Sí & Absorben diferencias del aviso y error de ubicación \\
+Precio por m² & Descendiente de $Y$ & \textbf{No} & Es el resultado dividido por el área \\
+Mención de cochera en el texto & Medición de $D$ & -- & Define el tratamiento; su error es una amenaza \\
+Calidad del edificio, amenidades & Confusor no observado $U$ & Imposible & Amenaza principal; se acota con análisis de sensibilidad \\
+Publicación en el portal & Selección & Por diseño & Los resultados valen para avisos publicados \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 \section{Selección, causalidad espacial y amenazas a la validez}
 
-\paragraph{Selección de publicación.} La muestra contiene solo departamentos publicados en un portal y vigentes en la fecha de captura. Si la decisión de publicar depende del precio y de la calidad no observada, el condicionamiento implícito en la selección ($S$ en el DAG) puede inducir asociaciones entre $T$ y $U$ dentro de la muestra. Por eso los resultados se interpretan como válidos para la \emph{población de avisos publicados}. No se transportan al parque residencial ni a los precios de contrato.
+\paragraph{Selección.} La muestra contiene solo departamentos publicados, vigentes en la fecha de captura y con dirección geocodificada con exactitud. Las direcciones exactas son algo más caras y se concentran en los distritos de mayor precio. Por eso los resultados valen para esa población y no se transportan al parque residencial ni a los precios de contrato.
 
-\paragraph{Dependencia espacial.} Departamentos cercanos comparten accesibilidad, entorno y la reputación del barrio, y los avisos de un mismo edificio comparten la calidad del inmueble. Estas dependencias no sesgan $\theta$ si se ajusta por la ubicación, pero hacen que los avisos no sean independientes. Ignorarlas produce intervalos demasiado estrechos. La tesis las trata en tres niveles: el \textit{cross-fitting} se agrupa por edificio para que un mismo edificio no esté a la vez en entrenamiento y evaluación; los errores estándar se agrupan por edificio y, como alternativa, por bloques de 1\,km; y la autocorrelación residual se mide con el I de Moran.
+\paragraph{Dependencia espacial.} Departamentos cercanos comparten entorno y los avisos de un mismo edificio comparten su calidad. El \textit{cross-fitting} se agrupa por edificio, los errores estándar se agrupan por edificio (y, como alternativa, por bloques de 1\,km) y la autocorrelación residual se mide con el I de Moran.
 
-\paragraph{Amenazas.} (i) Confusores no observados de calidad (sección~\ref{sec:sens}). (ii) Error de medición en el número de baños (medios baños) y en la ubicación (geocodificación aproximada). (iii) Duplicados que inflan artificialmente la precisión. (iv) Reglas de depuración basadas en el precio, que constituyen selección por el resultado. (v) Forma funcional lineal en $T$. Cada una se aborda con una especificación alternativa en la grilla del capítulo~\ref{cap:diseno}.
+\paragraph{Amenazas.} (i) Confusores no observados de calidad. (ii) Error de medición del tratamiento: omisiones en el texto, descripciones truncadas por el portal y errores del modelo de lenguaje. (iii) Duplicados que inflan la precisión. (iv) Reglas de depuración basadas en el precio. (v) Extrapolación fuera del soporte común. Cada una se aborda con una especificación alternativa (capítulo~\ref{cap:diseno}).

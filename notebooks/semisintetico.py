@@ -9,7 +9,7 @@ sobre los datos reales; el efecto verdadero theta(X) lo fija el escenario.
 import numpy as np
 import pandas as pd
 
-from causal_utils import dml_plr, gate, ols_efecto, sesgo_max
+from causal_utils import benchmark_irm, dml_irm, dml_plr, gate, ols_efecto, sesgo_max
 
 ESCENARIOS = {
     "E1 Sin U (efecto homogéneo)": dict(r2u=0.00, het=False, tau=0.0),
@@ -92,6 +92,45 @@ def replica(ins, esc, rep, Xv, area, edificio, celda, seed=1000):
         tb["verdad"] = tb["grupo"].map(THETA_CLASE)
         extra["gate"] = tb[["grupo", "theta", "ee", "verdad"]].to_dict("records")
         extra["p_wald"] = pw
+    for o in out:
+        o.update(escenario=esc, rep=rep)
+    return out, dict(escenario=esc, rep=rep, **extra)
+
+
+# --------------------------------------------------------------------------- tratamiento binario (cochera)
+#   logit P(D=1|X,U) = logit m0(X) + a*U ;  Y = g0(X) + THETA_B*D + b*sd_e*U + sqrt(1-b^2)*sd_e*Z
+ESCENARIOS_B = {
+    "B1 Binario sin U": dict(a=0.0, b2=0.00),
+    "B2 Binario con U moderado": dict(a=0.8, b2=0.07),
+}
+THETA_B = 0.10
+
+
+def replica_binaria(ins, esc, rep, Xv, edificio, seed=5000):
+    p = ESCENARIOS_B[esc]
+    rng = np.random.default_rng(seed + rep)
+    n = len(ins["logit_m0"])
+    U = rng.standard_normal(n)
+    D = rng.binomial(1, 1 / (1 + np.exp(-(ins["logit_m0"] + p["a"] * U))))
+    b = np.sqrt(p["b2"])
+    Y = ins["g0"] + THETA_B * D + b * ins["sd_e"] * U + np.sqrt(1 - b ** 2) * ins["sd_e"] * rng.standard_normal(n)
+    out = []
+    b1, s1 = ols_efecto(Y, D, Xv, edificio)
+    out.append(dict(estimador="Hedónico OLS", theta=b1, se=s1))
+    r = dml_plr(Y, D, Xv, edificio, {"edif": edificio}, n_rep=1, seed=seed + rep)
+    out.append(dict(estimador="DML PLR", theta=r["theta"], se=r["se"]["edif"]))
+    irm = dml_irm(Y, D, Xv, edificio, {"edif": edificio}, n_rep=1, seed=seed + rep)
+    rc = irm["recortada"]
+    out.append(dict(estimador="DML-IRM (soporte común)", theta=rc["theta"], se=rc["se"]["edif"]))
+    extra = dict(pct_fuera=float(1 - rc["n"] / n))
+    if p["a"] > 0:
+        # fuerza real de U: modelo "largo" que sí observa U, comparado con el principal (definición de benchmark)
+        largo = dml_irm(Y, D, np.column_stack([Xv, U]), edificio, {"edif": edificio}, n_rep=1, seed=seed + rep)["recortada"]
+        cf_d, cf_y = benchmark_irm(largo, rc)
+        bmax = sesgo_max(cf_y, cf_d, rc["sigma2"], 1 / rc["nu2"])
+        se = rc["se"]["edif"]
+        extra.update(cf_d=cf_d, cf_y=cf_y, cota=bmax,
+                     cubre_sens=(rc["theta"] - bmax - 1.96 * se <= THETA_B <= rc["theta"] + bmax + 1.96 * se))
     for o in out:
         o.update(escenario=esc, rep=rep)
     return out, dict(escenario=esc, rep=rep, **extra)

@@ -2,73 +2,97 @@
 
 \section{Fuente de datos}
 
-Los datos provienen del \textit{web scraping} de un portal inmobiliario peruano, realizado en marzo de 2025 sobre avisos de alquiler de departamentos en 13 distritos de Lima Metropolitana. Un \textit{pipeline} previo geocodificó cada dirección con una API de geocodificación, que devuelve latitud, longitud, un indicador de precisión (\texttt{ROOFTOP}, \texttt{GEOMETRIC\_CENTER}, \texttt{RANGE\_INTERPOLATED} o \texttt{APPROXIMATE}) y el tipo de lugar encontrado. El archivo crudo tiene 3\,739 avisos y 13 variables (anexo~\ref{anx:diccionario}). El precio es el precio de oferta mensual en soles; la descripción libre se usa solo para detectar duplicados. Ni la descripción ni la dirección se exportan a los archivos de análisis.
+Los datos provienen del \textit{web scraping} de un portal inmobiliario peruano, realizado en marzo de 2025 sobre avisos de alquiler de departamentos en 13 distritos de Lima Metropolitana. Un \textit{pipeline} previo geocodificó cada dirección con la API de Google, que devuelve latitud, longitud, el tipo de lugar encontrado y la precisión de la ubicación:
+\begin{itemize}[leftmargin=*]
+\item \texttt{ROOFTOP}: se ubicó el edificio exacto.
+\item \texttt{RANGE\_INTERPOLATED}: la posición se interpoló dentro de la cuadra.
+\item \texttt{GEOMETRIC\_CENTER}: se devolvió el centro de una calle o zona.
+\item \texttt{APPROXIMATE}: se devolvió el centro del barrio o del distrito; muchos avisos caen en el mismo punto.
+\end{itemize}
+El archivo crudo tiene 3\,739 avisos y 13 variables (anexo~\ref{anx:diccionario}). La descripción libre se usa para deduplicar y para medir la cochera. Ni la descripción ni la dirección se exportan a los archivos de análisis.
 
 \section{Auditoría y construcción de la muestra}\label{sec:auditoria}
 
-La auditoría (\texttt{notebook2\_auditoria.ipynb}) aplica, en orden, las reglas siguientes. Cada paso se registra con su número de exclusiones (tabla~\ref{tab:exclusiones}).
-
+La auditoría (\texttt{notebook2\_auditoria.ipynb}) aplica, en orden, las reglas siguientes (tabla~\ref{tab:exclusiones}):
 \begin{enumerate}[leftmargin=*]
-\item \textbf{Variables núcleo.} Se excluyen los avisos sin dormitorios, baños, área, precio o distrito. No se imputa el tratamiento, el resultado ni el área.
-\item \textbf{Deduplicación.} Se identificaron dos patrones. \emph{D1 (re-publicación)}: avisos con el mismo texto normalizado (minúsculas, sin tildes ni signos), los mismos área, dormitorios y baños, y precio a $\pm$10\,\%. La mitad de estos casos eran el mismo aviso capturado bajo dos distritos, porque el scraping buscó por distrito y el portal lo mostraba en ambos. Cuando el texto coincide pero los atributos no, se trata de una plantilla de la inmobiliaria para otra unidad y no se marca. \emph{D2 (publicación cruzada)}: mismas coordenadas (cuatro decimales, unos 11\,m), área, dormitorios, baños y precio con texto distinto, es decir, el mismo inmueble ofrecido por otro corredor. En cada grupo se conserva el aviso más reciente. Los casos D2 son ambiguos (podrían ser dos unidades idénticas del mismo edificio), por lo que se reporta también la estimación sin deduplicar.
-\item \textbf{Geocodificación incoherente (G1).} Se excluyen los avisos situados a más de 8\,km de la mediana de las coordenadas de su distrito, radio que ningún distrito de la muestra supera. Un caso de San Miguel aparecía a 141\,km. La regla no usa el precio.
-\item \textbf{Reglas de depuración F1--F6.} Son las del análisis exploratorio previo: rangos plausibles de dormitorios, área y precio por m² (F1); combinaciones incoherentes de área y distribución (F2--F3); precio menor de S/\,600 (F4); combinaciones de dormitorios y baños con tres casos o menos (F5); y precio por m² atípico dentro de su distrito (F6, por encima de $Q_3+2.5\,\mathrm{RIC}$). Varias usan el precio, lo que constituye selección por el resultado. Por eso se define además un \textbf{filtro mínimo} predefinido, que solo elimina errores groseros (área 15--1\,000\,m², precio S/\,300--30\,000, 1--6 dormitorios y baños), y se usa como especificación alternativa.
+\item \textbf{Variables núcleo.} Se excluyen los avisos sin dormitorios, baños, área, precio o distrito.
+\item \textbf{Deduplicación.} \emph{D1 (re-publicación)}: mismo texto normalizado, mismos área, dormitorios y baños, y precio a $\pm$10\,\%. La mitad de estos casos eran el mismo aviso capturado bajo dos distritos. \emph{D2 (publicación cruzada)}: mismas coordenadas (unos 11\,m), área, dormitorios, baños y precio con texto distinto. En cada grupo se conserva el aviso más reciente.
+\item \textbf{Geocodificación incoherente (G1).} Se excluyen los avisos a más de 8\,km de la mediana de las coordenadas de su distrito.
+\item \textbf{Geocodificación no exacta (G2).} Como la ubicación es el confusor más importante, el análisis principal usa \textbf{solo direcciones \texttt{ROOFTOP}}. Con las otras precisiones, las coordenadas pueden errar por cientos de metros o kilómetros. La muestra con todas las precisiones se conserva como especificación alternativa para los baños.
+\item \textbf{Reglas de depuración F1--F6.} Son las del análisis exploratorio previo: rangos plausibles, combinaciones incoherentes, precio menor de S/\,600, combinaciones raras de dormitorios y baños, y precio por m² atípico dentro de su distrito. Como varias usan el precio, se define además un \textbf{filtro mínimo} alternativo, que solo elimina errores groseros.
 \end{enumerate}
 
-\paragraph{Unidades de dependencia.} Se definen dos agrupamientos. El \texttt{edificio\_id} reúne los avisos con las mismas coordenadas redondeadas a cuatro decimales; es la unidad que no se reparte entre folds y el cluster principal de los errores estándar. La \texttt{celda\_1km} es un bloque espacial de unos $1\times1$\,km, usado como agrupamiento alternativo más grueso. Las coordenadas \texttt{APPROXIMATE} son centroides de calle o de zona, de modo que reúnen muchos avisos en un solo punto. Tratarlos como un único cluster es conservador; además se reporta la estimación sin ellos.
+\paragraph{Unidades de dependencia.} El \texttt{edificio\_id} reúne los avisos con las mismas coordenadas redondeadas a cuatro decimales; es la unidad que no se reparte entre folds y el cluster principal de los errores estándar. La \texttt{celda\_1km} es un bloque espacial de unos $1\times1$\,km.
+
+\section{Medición de la cochera con inteligencia artificial (OE5)}\label{sec:oe5}
+
+La disponibilidad de cochera no es un campo de la base: hay que leerla en la descripción. El procedimiento (\texttt{notebook2b\_extraccion\_ia.ipynb} y \texttt{extraccion\_ia.py}) se diseñó para minimizar el costo y ser reproducible:
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Pre-filtro con expresiones regulares.} Se buscan menciones de \emph{cochera, estacionamiento, parqueo, parking, garaje} y sus variantes. Si no hay ninguna mención, el aviso se clasifica como \emph{sin cochera} sin llamar a la API.
+\item \textbf{Fragmentos.} Para cada mención en la posición $x$ se toma \texttt{texto[x-200 : x+200]}, sin salirse de los límites del texto. Los fragmentos que se solapan se unen.
+\item \textbf{Privacidad.} Antes de enviar el texto se enmascaran teléfonos, correos y enlaces.
+\item \textbf{Modelo de lenguaje.} Se usa \texttt{gpt-4.1-mini-2025-04-14}, una versión fechada que no cambia con el tiempo, con temperatura 0 y \textbf{salida JSON con esquema estricto}:
+\begin{center}\small
+\texttt{\{"cochera": "si"|"no", "tipo": "incluida"|"costo\_extra"|"no\_tiene"|"ambigua",}\\
+\texttt{\ "precio\_extra": 0 | monto | null, "moneda", "incluida\_explicita", "num\_cocheras", "motivo"\}}
+\end{center}
+El prompt define cada categoría con ejemplos y aclara qué no cuenta como cochera del departamento: estacionamiento de visitas, en la calle o para bicicletas. Se probó en un piloto de 25 avisos, que reveló tres errores del prompt v1 (marcar como ambigua una cochera sin precio, leer ``ALQUILER CON COCHERA \$700'' como costo extra y no reconocer ``sin cochera, pero se puede alquilar''). La versión final (v2) los corrige.
+\item \textbf{Caché.} Cada respuesta se guarda localmente con una clave que combina el modelo, la versión del prompt y el fragmento; volver a ejecutar no repite llamadas.
+\item \textbf{Validación humana.} Se generó una muestra estratificada de 249 avisos para etiquetar a ciegas. Al cierre de este documento está pendiente, así que la medición se considera \emph{exploratoria}.
+\end{enumerate}
+
+\paragraph{Supuestos de medición.} (i) Si el aviso no menciona cochera, se asume que no la tiene. (ii) Si tiene cochera y no indica un pago adicional, se asume incluida en el precio; la variable \texttt{incluida\_explicita} marca cuándo el texto lo dice literalmente. (iii) Si indica un monto o un pago aparte, la cochera es de costo extra.
+
+\paragraph{Definición del tratamiento.} $D=1$ si la cochera está incluida; $D=0$ si el aviso no la menciona o la IA determina que no tiene. Se excluyen los casos de costo extra y los ambiguos. La definición estricta ($D=1$ solo si la inclusión es explícita) y la que considera tratadas también las cocheras de costo extra se reportan como alternativas.
 
 \section{Variables}
 
 \begin{itemize}[leftmargin=*]
-\item \textbf{Resultado $Y$}: logaritmo natural del precio mensual de oferta.
-\item \textbf{Tratamiento $T$}: número de baños (1--5).
-\item \textbf{Confusores $X$ (S1)}: logaritmo del área; dormitorios; antigüedad en años, con los faltantes codificados como 0 y un indicador de faltante (así no se usa información de otras filas y no hay fuga entre folds); latitud y longitud; días publicado; distrito (12 indicadores); y tipo de lugar de geocodificación (indicadores, con las categorías de menos de 30 casos agrupadas en ``otro''). Son 25 columnas en total.
-\item \textbf{Segmentos para heterogeneidad}: clase de distrito (clase1: Miraflores, San Isidro, Barranco y Lince; clase2: Magdalena, Surquillo, Jesús María, San Borja y Surco; clase3: Cercado, San Miguel, Chorrillos y La Molina, la misma clasificación del análisis exploratorio) y quintiles de área.
+\item \textbf{Resultado $Y$}: logaritmo del precio mensual de oferta.
+\item \textbf{Tratamiento principal $D$}: cochera incluida (binario).
+\item \textbf{Tratamiento secundario $T$}: número de baños (1--5).
+\item \textbf{Confusores $X$}: log del área, dormitorios, baños (solo para $D$), antigüedad (con 0 e indicador si falta, sin usar información de otras filas), latitud, longitud, días publicado, distrito (12 indicadores) y tipo de lugar de geocodificación.
+\item \textbf{Segmentos}: clase de distrito (clase1: Miraflores, San Isidro, Barranco y Lince; clase2: Magdalena, Surquillo, Jesús María, San Borja y Surco; clase3: Cercado, San Miguel, Chorrillos y La Molina) y quintiles de área.
 \end{itemize}
 
 \section{Estimadores}
 
-\subsection{Línea base: asociación y modelo hedónico}
-La asociación sin ajustar es la pendiente de una regresión de $Y$ sobre $T$. El modelo hedónico lineal regresa $Y$ sobre $T$ y las 25 columnas de $X$ por mínimos cuadrados. En ambos casos los errores estándar se agrupan por edificio.
+\subsection{Línea base}
+La diferencia sin ajustar es la pendiente de una regresión de $Y$ sobre el tratamiento. El modelo hedónico lineal agrega las columnas de $X$. Ambos usan errores estándar agrupados por edificio.
 
-\subsection{Double Machine Learning parcialmente lineal}\label{sec:dml}
-Siguiendo a \citet{chernozhukov2018}, $\theta$ en~\eqref{eq:plr} se estima con el procedimiento siguiente.
+\subsection{Double ML interactivo (IRM/AIPW) para la cochera}\label{sec:irm}
+Siguiendo a \citet{chernozhukov2018}, con $K=5$ folds \textbf{agrupados por edificio}:
 \begin{enumerate}[leftmargin=*]
-\item Se divide la muestra en $K=5$ folds \textbf{agrupados por edificio}: todos los avisos de un edificio caen en el mismo fold.
-\item Para cada fold $k$, se ajustan con los otros cuatro folds dos modelos de aprendizaje automático, $\hat\ell(X)\approx E[Y\mid X]$ y $\hat m(X)\approx E[T\mid X]$, y se predicen en el fold $k$ (\textit{cross-fitting}).
-\item Se forman los residuos fuera de fold $\tilde Y_i=Y_i-\hat\ell(X_i)$ y $\tilde T_i=T_i-\hat m(X_i)$: la parte del precio y de los baños que no explican los confusores.
-\item Se estima $\hat\theta=\sum_i\tilde T_i\tilde Y_i/\sum_i\tilde T_i^2$, que resuelve el momento ortogonal $E[(\tilde Y-\theta\tilde T)\tilde T]=0$.
-\item Se repite con 10 particiones aleatorias distintas y se reporta la mediana. El error estándar incorpora la dispersión entre particiones: $\hat\sigma=\sqrt{\mathrm{mediana}_r\,(\hat\sigma_r^2+(\hat\theta_r-\hat\theta)^2)}$.
+\item En cada fold se entrenan, con los otros cuatro: un clasificador para la propensión $\hat m(X)=\hat P(D=1\mid X)$ y dos regresores para $\hat g_1(X)=\hat E[Y\mid D=1,X]$ y $\hat g_0(X)=\hat E[Y\mid D=0,X]$, ajustados en tratados y controles. Todos son \textit{histogram gradient boosting} (300 iteraciones, tasa 0.05, profundidad 4, mínimo de 20 observaciones por hoja, regularización $L_2$ igual a 1).
+\item Con las predicciones fuera de fold se calcula, para cada aviso, el score doblemente robusto
+\[
+\phi_i=\hat g_1(X_i)-\hat g_0(X_i)+\frac{D_i\,(Y_i-\hat g_1(X_i))}{\hat m(X_i)}-\frac{(1-D_i)\,(Y_i-\hat g_0(X_i))}{1-\hat m(X_i)}.
+\]
+\item El efecto es el promedio de $\phi_i$ entre los avisos con $\hat m\in[0.05,0.95]$. Sin recorte, se usa $\hat m$ acotada a $[0.01,0.99]$.
+\item Se repite con 10 particiones; se reporta la mediana, y el error estándar incorpora la dispersión entre particiones.
 \end{enumerate}
+El score es \emph{doblemente robusto}: si el modelo de la propensión o el del resultado es correcto, el estimador es consistente. Su ortogonalidad hace que los errores de primer orden de los modelos auxiliares no contaminen el efecto. Para la propensión se reportan, fuera de fold, el AUC, el log-loss y el Brier, y el \textbf{balance} de covariables (diferencias de medias estandarizadas) antes y después de ponderar por $1/\hat m$ y $1/(1-\hat m)$.
 
-La ortogonalización hace que los errores de primer orden de $\hat\ell$ y $\hat m$ no contaminen $\hat\theta$, y el \textit{cross-fitting} evita el sesgo por sobreajuste. El \textit{learner} principal, fijado antes de estimar, es \textit{histogram gradient boosting} (scikit-learn; 300 iteraciones, tasa de aprendizaje 0.05, profundidad máxima 4, mínimo de 20 observaciones por hoja y regularización $L_2$ igual a 1). Como comparadores se usan \textit{gradient boosting} clásico, \textit{random forest} y Lasso con validación cruzada. Los diagnósticos de los modelos auxiliares ($R^2$ y error absoluto medio) se calculan fuera de fold.
+\subsection{Double ML parcialmente lineal (PLR) para los baños}
+Para el tratamiento continuo se estima~\eqref{eq:plr}: se predicen $Y$ y $T$ desde $X$ fuera de fold y se regresa el residuo de $Y$ sobre el de $T$. Con el tratamiento binario, el PLR se reporta como comparador del IRM.
 
 \subsection{Inferencia agrupada}
-Con $\psi_i=(\tilde Y_i-\hat\theta\tilde T_i)\tilde T_i$ y $J=n^{-1}\sum_i\tilde T_i^2$, el error estándar agrupado (CR1) es
-\[
-\widehat{\mathrm{EE}}(\hat\theta)=\frac{1}{nJ}\sqrt{\frac{G}{G-1}\sum_{g=1}^{G}\Big(\sum_{i\in g}\psi_i\Big)^2},
-\]
-donde $g$ indexa los clusters. El principal es el edificio ($G=2\,178$); como alternativas se usan la celda de 1\,km ($G=183$) y la versión iid.
+Con $\psi_i$ el score centrado, el error estándar agrupado (CR1) es\[\widehat{\mathrm{EE}}=\frac{1}{n}\sqrt{\frac{G}{G-1}\sum_g\Big(\sum_{i\in g}\psi_i\Big)^2}\]para el IRM (análogo para el PLR, dividido por $\frac1n\sum\tilde T^2$). El cluster principal es el edificio; la alternativa, el bloque de 1\,km.
 
 \subsection{Efectos por grupos (GATE)}
-Para cada grupo preespecificado $s$ (clase de distrito o quintil de área) se estima $\hat\theta_s=\sum_{i\in s}\tilde T_i\tilde Y_i/\sum_{i\in s}\tilde T_i^2$, reutilizando los residuos fuera de fold de la muestra completa. La covarianza conjunta entre grupos se calcula de forma agrupada por edificio a partir de las funciones de influencia. Así se construyen intervalos simultáneos (Bonferroni) y una prueba de Wald de igualdad de todos los $\theta_s$.
+Para el IRM, el GATE del grupo $s$ es el promedio de $\phi_i$ dentro de $s$; para el PLR, la pendiente de los residuos dentro de $s$. La covarianza conjunta entre grupos se agrupa por edificio, y con ella se construyen intervalos simultáneos (Bonferroni) y una prueba de Wald de igualdad.
 
 \subsection{Sensibilidad a confusores omitidos}\label{sec:sens}
-Sea $U$ un confusor omitido. Siguiendo a \citet{chernozhukov2022}, en el modelo parcialmente lineal el sesgo de $\hat\theta$ queda acotado por
+Siguiendo a \citet{chernozhukov2022}, el sesgo por un confusor omitido $U$ queda acotado por
 \begin{equation}\label{eq:cota}
-|\hat\theta-\theta|\le\sqrt{\frac{R^2_{Y\sim U\mid T,X}\;R^2_{T\sim U\mid X}}{1-R^2_{T\sim U\mid X}}}\;\frac{\sigma_\varepsilon}{\sigma_{\tilde T}},
+|\hat\theta-\theta|\le\sqrt{\frac{C_Y^2\;C_D^2}{1-C_D^2}}\;\sqrt{\sigma^2\,\nu^2},
 \end{equation}
-donde $R^2_{T\sim U\mid X}$ es la fracción de la varianza residual del tratamiento explicada por $U$ y $R^2_{Y\sim U\mid T,X}$ la del resultado. La cota corresponde al caso más desfavorable ($\rho=1$). A partir de ella se calculan tres cosas:
+donde $\sigma^2$ es la varianza del error del resultado y $\nu^2=E[\alpha^2]$ el segundo momento del representante de Riesz. En el IRM, $\alpha=D/m-(1-D)/(1-m)$; en el PLR, $\nu^2=1/E[\tilde T^2]$. $C_Y^2$ y $C_D^2$ miden la fuerza de $U$ con el resultado y con el tratamiento, en escala de $R^2$ parcial. A partir de la cota se calculan:
 \begin{itemize}[leftmargin=*]
-\item el \textbf{valor de robustez} RV: la fuerza común $R^2_{T}=R^2_{Y}$ que llevaría $\hat\theta$ a cero \citep{cinelli2020}, y RV$_\alpha$, la que llevaría a cero el límite inferior del IC~95\,\%;
-\item los \textbf{benchmarks}: se re-estima el modelo omitiendo un bloque de confusores observados (área, ubicación, dormitorios o antigüedad) y se mide cuánto explicaba de la varianza residual de $T$ y de $Y$. Esto permite preguntar si un $U$ tan fuerte como el área (o el doble de fuerte) anularía el efecto;
-\item el \textbf{contorno de sensibilidad}: el efecto corregido en función de $(R^2_T,R^2_Y)$.
+\item el \textbf{valor de robustez} RV: la fuerza común que lleva el efecto a cero \citep{cinelli2020}, y RV$_\alpha$, la que lleva a cero el límite inferior del IC;
+\item los \textbf{benchmarks}: se re-estima omitiendo un bloque de confusores observados y se mide cuánto cambian $\sigma^2$ y $\nu^2$, lo que responde ``¿y si $U$ fuera tan fuerte como la antigüedad?'';
+\item el \textbf{contorno de sensibilidad}.
 \end{itemize}
-Como referencia complementaria se reporta el \textit{E-value} \citep{vanderweele2017}, con el efecto estandarizado por la desviación estándar de $Y$.
 
 \subsection{Autocorrelación espacial}
-Se calcula el I de Moran \citep{moran1950} de los residuos con una matriz de pesos de 10 vecinos más cercanos, estandarizada por filas. Su significancia se evalúa con 999 permutaciones. Un I positivo y significativo en los residuos indica que avisos cercanos comparten choques no explicados y justifica la inferencia agrupada.
-
-\section{Medición de atributos con IA (OE5): justificación de no ejecución}\label{sec:oe5}
-
-El texto de los avisos contiene menciones de atributos que podrían actuar como \textit{proxies} de la calidad no observada: vista, ascensor, piscina, amoblado o remodelado. Una inspección preliminar con expresiones regulares indica que estas menciones son frecuentes. Usar estas variables como controles exige (i) una taxonomía documentada, (ii) un etiquetado manual de 200 a 300 avisos para medir precisión y \textit{recall}, (iii) enmascarar las menciones del propio tratamiento y del precio y (iv) justificar la posición causal de cada \textit{proxy} en el DAG. Por decisión de alcance, este componente se difiere al siguiente entregable. La especificación S5 de la grilla queda reservada para él y el análisis de sensibilidad cubre, mientras tanto, la amenaza que estos \textit{proxies} buscarían reducir.
+Se calcula el I de Moran \citep{moran1950} de los residuos con 10 vecinos más cercanos y 999 permutaciones.

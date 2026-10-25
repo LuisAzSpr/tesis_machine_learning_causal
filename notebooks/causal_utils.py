@@ -12,8 +12,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import (GradientBoostingRegressor, HistGradientBoostingRegressor,
-                              RandomForestRegressor)
+from sklearn.ensemble import (GradientBoostingRegressor, HistGradientBoostingClassifier,
+                              HistGradientBoostingRegressor, RandomForestRegressor)
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import GroupKFold
 from sklearn.neighbors import NearestNeighbors
@@ -93,13 +93,16 @@ def preparar_variables(df):
     return d
 
 
-def muestra(base, dedup=True, filtro="principal", excluir_aprox=False):
-    """Selecciona la muestra analítica a partir de la base auditada (notebook2)."""
+def muestra(base, dedup=True, filtro="principal", excluir_aprox=False, solo_rooftop=True):
+    """Selecciona la muestra analítica a partir de la base auditada (notebook2).
+    Por defecto solo usa direcciones geocodificadas con precisión ROOFTOP (ubicación exacta)."""
     d = base.copy()
     if "geo_incoherente" in d:
         d = d[d["geo_incoherente"] == 0]
     if dedup:
         d = d[d["es_duplicado"] == 0]
+    if solo_rooftop:
+        d = d[d["precision"] == "ROOFTOP"]
     if filtro == "principal":
         d = d[motivo_filtro_principal(d).isna()]
     elif filtro == "minimo":
@@ -107,6 +110,16 @@ def muestra(base, dedup=True, filtro="principal", excluir_aprox=False):
     if excluir_aprox:
         d = d[d["precision"] != "APPROXIMATE"]
     return preparar_variables(d).reset_index(drop=True)
+
+
+def agregar_cochera(d, ruta="../csv/cochera_extraccion.csv"):
+    """Une la variable cochera extraída con IA (notebook 2b) y crea indicadores para usarla como control."""
+    co = pd.read_csv(ruta)[["id_aviso", "tipo", "T_cochera", "T_cochera_estricta", "precio_extra", "num_cocheras", "cortada"]]
+    d = d.merge(co.rename(columns={"tipo": "tipo_cochera"}), on="id_aviso", how="left")
+    d["coch_incluida"] = (d["tipo_cochera"] == "incluida").astype(int)
+    d["coch_extra"] = (d["tipo_cochera"] == "costo_extra").astype(int)
+    d["coch_ambigua"] = (d["tipo_cochera"] == "ambigua").astype(int)
+    return d
 
 
 def matriz(d, num=NUM, cat=CAT, extra=()):
@@ -188,6 +201,118 @@ def dml_plr(Y, T, X, grupos, clusters=None, learner="HGB", k=5, n_rep=1, seed=SE
     return {"theta": theta, "se": se, "thetas": thetas, "ry": ry, "rt": rt, "eps": eps,
             "r2_y": 1 - np.var(ry) / np.var(Y), "r2_t": 1 - np.var(rt) / np.var(T),
             "mae_y": float(np.mean(np.abs(ry))), "mae_t": float(np.mean(np.abs(rt))), "n": len(Y)}
+
+
+CLASIFICADOR = lambda s: HistGradientBoostingClassifier(max_iter=300, learning_rate=0.05, max_depth=4,
+                                                        min_samples_leaf=20, l2_regularization=1.0, random_state=s)
+
+
+def dml_irm(Y, D, X, grupos, clusters=None, k=5, n_rep=1, seed=SEED, recorte=(0.05, 0.95)):
+    """DML para tratamiento binario (modelo interactivo IRM / AIPW, Chernozhukov et al., 2018).
+
+    m(X) = P(D=1|X) con un clasificador; g1(X), g0(X) = E[Y|D=d,X] con regresores ajustados en cada brazo.
+    Score: phi = g1 - g0 + D(Y-g1)/m - (1-D)(Y-g0)/(1-m); ATE = media de phi.
+    El ATE se reporta en la muestra completa (m acotada a [0.01, 0.99]) y en la población con soporte común
+    (m dentro de `recorte`), que es el estimando principal. EE agrupados por cluster.
+    """
+    Y, D, X = np.asarray(Y, float), np.asarray(D, int), np.asarray(X, float)
+    clusters = clusters or {}
+    ms, g1s, g0s = [], [], []
+    for r in range(n_rep):
+        folds = folds_agrupados(grupos, k, seed + r)
+        m, g1, g0 = np.empty(len(Y)), np.empty(len(Y)), np.empty(len(Y))
+        for tr, te in folds:
+            m[te] = CLASIFICADOR(seed + r).fit(X[tr], D[tr]).predict_proba(X[te])[:, 1]
+            t1, t0 = tr[D[tr] == 1], tr[D[tr] == 0]
+            g1[te] = LEARNERS["HGB"](seed + r).fit(X[t1], Y[t1]).predict(X[te])
+            g0[te] = LEARNERS["HGB"](seed + r).fit(X[t0], Y[t0]).predict(X[te])
+        ms.append(m); g1s.append(g1); g0s.append(g0)
+
+    def estimar(m, g1, g0, mask):
+        mc = np.clip(m, 0.01, 0.99)
+        phi = g1 - g0 + D * (Y - g1) / mc - (1 - D) * (Y - g0) / (1 - mc)
+        phi, n = phi[mask], mask.sum()
+        th = phi.mean()
+        ses = {"iid": np.sqrt(np.var(phi) / n)}
+        for c, cl in clusters.items():
+            s = pd.Series(phi - th).groupby(np.asarray(cl)[mask]).sum().values
+            ses[c] = np.sqrt(len(s) / (len(s) - 1) * np.sum(s ** 2)) / n
+        return th, ses, phi
+
+    salida = {}
+    m_med, g1_med, g0_med = np.mean(ms, 0), np.mean(g1s, 0), np.mean(g0s, 0)
+    for nombre, lo, hi in [("completa", 0.0, 1.0), ("recortada", *recorte)]:
+        ths, ses_r = [], []
+        for m, g1, g0 in zip(ms, g1s, g0s):
+            mask = (m >= lo) & (m <= hi)
+            th, ses, _ = estimar(m, g1, g0, mask)
+            ths.append(th); ses_r.append(ses)
+        ths = np.array(ths); th = float(np.median(ths))
+        se = {c: float(np.sqrt(np.median(np.array([s[c] ** 2 for s in ses_r]) + (ths - th) ** 2)))
+              for c in ses_r[0]}
+        mask = (m_med >= lo) & (m_med <= hi)
+        _, _, phi = estimar(m_med, g1_med, g0_med, mask)
+        mc = np.clip(m_med, 0.01, 0.99)
+        alpha = (D / mc - (1 - D) / (1 - mc))[mask]
+        gD = np.where(D == 1, g1_med, g0_med)
+        salida[nombre] = {"theta": th, "se": se, "thetas": ths, "n": int(mask.sum()), "mask": mask, "phi": phi,
+                          "sigma2": float(np.mean((Y - gD)[mask] ** 2)), "nu2": float(np.mean(alpha ** 2))}
+    from sklearn.metrics import brier_score_loss, log_loss, roc_auc_score
+    gD = np.where(D == 1, g1_med, g0_med)
+    salida["diag"] = {"m": m_med, "g1": g1_med, "g0": g0_med,
+                      "logloss": log_loss(D, np.clip(m_med, 1e-6, 1 - 1e-6)), "brier": brier_score_loss(D, m_med),
+                      "auc": roc_auc_score(D, m_med), "r2_y": 1 - np.mean((Y - gD) ** 2) / np.var(Y)}
+    return salida
+
+
+def benchmark_irm(largo, corto):
+    """Fuerza implícita de un bloque omitido en el IRM (definición de DoubleML): cf_y con la varianza del
+    error del resultado y cf_d con el segundo momento del representante de Riesz."""
+    cf_y = max((corto["sigma2"] - largo["sigma2"]) / corto["sigma2"], 0.0)
+    cf_d = max((largo["nu2"] - corto["nu2"]) / largo["nu2"], 0.0)
+    return cf_d, cf_y
+
+
+def gate_irm(phi, segmento, clusters):
+    """GATE del IRM: media del score AIPW por grupo, con covarianza agrupada conjunta y prueba de Wald."""
+    from scipy import stats
+    segmento = np.asarray(segmento)
+    niveles = sorted([g for g in pd.unique(segmento) if pd.notna(g)], key=str)
+    n = len(phi)
+    inf = np.zeros((n, len(niveles)))
+    th = []
+    for j, g in enumerate(niveles):
+        msk = segmento == g
+        t = phi[msk].mean()
+        th.append(t)
+        inf[msk, j] = (phi[msk] - t) / msk.sum()
+    th = np.array(th)
+    sums = pd.DataFrame(inf).groupby(np.asarray(clusters)).sum().values
+    G = sums.shape[0]
+    V = G / (G - 1) * sums.T @ sums
+    se = np.sqrt(np.diag(V))
+    C = np.column_stack([np.ones(len(th) - 1), -np.eye(len(th) - 1)])
+    diff = C @ th
+    wald = float(diff @ np.linalg.pinv(C @ V @ C.T) @ diff)
+    p = float(stats.chi2.sf(wald, len(th) - 1))
+    zb = stats.norm.ppf(1 - 0.05 / (2 * len(th)))
+    tab = pd.DataFrame({"grupo": niveles, "n": [int(np.sum(segmento == g)) for g in niveles], "theta": th, "ee": se,
+                        "ic_inf": th - 1.96 * se, "ic_sup": th + 1.96 * se,
+                        "ic_sim_inf": th - zb * se, "ic_sim_sup": th + zb * se})
+    return tab, wald, p
+
+
+def balance(X, D, w=None):
+    """Diferencias de medias estandarizadas (SMD) entre tratados y controles, con pesos opcionales."""
+    X = pd.DataFrame(X)
+    w = np.ones(len(D)) if w is None else w
+    filas = []
+    for c in X.columns:
+        x = X[c].values.astype(float)
+        m1 = np.average(x[D == 1], weights=w[D == 1]); m0 = np.average(x[D == 0], weights=w[D == 0])
+        s = np.sqrt((x[D == 1].var() + x[D == 0].var()) / 2)
+        filas.append((c, (m1 - m0) / s if s > 0 else 0.0))
+    return pd.DataFrame(filas, columns=["variable", "SMD"])
 
 
 def ols_efecto(Y, T, X=None, clusters=None):

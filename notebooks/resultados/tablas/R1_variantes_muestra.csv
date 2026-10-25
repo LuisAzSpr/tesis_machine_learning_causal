@@ -1,5 +1,5 @@
 variante de muestra,N
-Principal (dedup + G1 + F1-F6),3028
-Sin deduplicar (G1 + F1-F6),3248
-Dedup + G1 + filtro mínimo,3243
-Principal sin geocodificación APPROXIMATE,2508
+Principal (dedup + G1 + ROOFTOP + F1-F6),2220
+Sin deduplicar (G1 + ROOFTOP + F1-F6),2366
+Dedup + G1 + ROOFTOP + filtro mínimo,2278
+Todas las precisiones de geocodificación (dedup + G1 + F1-F6),3028

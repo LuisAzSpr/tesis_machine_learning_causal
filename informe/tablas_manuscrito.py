@@ -46,7 +46,13 @@ def tabla(df, nombre, origen, alin=None, dec=None):
 
 
 def leer(n):
-    return pd.read_csv(SRC / f"{n}.csv"), f"{NB[n[:2]]}.ipynb -> resultados/tablas/{n}.csv"
+    if n.startswith("R8"):
+        nb = "notebook2b_extraccion_ia"
+    elif n.startswith("R2") or n[:3] in ("R3c", "R4c", "R5c", "R7c"):
+        nb = "notebook3b_efecto_cochera"
+    else:
+        nb = NB[n[:2]]
+    return pd.read_csv(SRC / f"{n}.csv"), f"{nb}.ipynb -> resultados/tablas/{n}.csv"
 
 
 # R1 ---------------------------------------------------------------------------------
@@ -58,9 +64,9 @@ df, o = leer("R1_variantes_muestra")
 tabla(df.rename(columns={"variante de muestra": "Variante de muestra"}), "t_variantes", o, "lr")
 
 df, o = leer("R1_cobertura_distrito")
-df = df[["distrito", "clase", "N", "% muestra", "precio mediano", "área mediana", "baños medio", "% ROOFTOP", "% antig. faltante"]]
-df.columns = ["Distrito", "Clase", "N", "% muestra", "Precio med. (S/)", "Área med. (m²)", "Baños prom.", "% ROOFTOP", "% antig. faltante"]
-tabla(df, "t_cobertura", o, "llrrrrrrr", {"% muestra": 1, "Baños prom.": 2, "% ROOFTOP": 1, "% antig. faltante": 1,
+df = df[["distrito", "clase", "N", "% muestra", "precio mediano", "área mediana", "baños medio", "% antig. faltante"]]
+df.columns = ["Distrito", "Clase", "N", "% muestra", "Precio med. (S/)", "Área med. (m²)", "Baños prom.", "% antig. faltante"]
+tabla(df, "t_cobertura", o, "llrrrrrr", {"% muestra": 1, "Baños prom.": 2, "% antig. faltante": 1,
                                            "Precio med. (S/)": 0, "Área med. (m²)": 0})
 
 df, o = leer("R1_agrupamientos")
@@ -133,4 +139,40 @@ if (SRC / "R6_simulacion.csv").exists():
     df, o = leer("R6_gate")
     df.columns = ["Grupo", "θ verdadero", "Media GATE", "Sesgo", "RMSE", "Cobertura IC 95%", "Potencia Wald (%)"]
     tabla(df, "t_sim_gate", o, "lrrrrrr", {"Cobertura IC 95%": 0, "Potencia Wald (%)": 0})
+
+# Cochera (tratamiento principal) -------------------------------------------------------
+df, o = leer("R8_prefiltro"); df.columns = ["Concepto", "Valor"]; tabla(df, "t_prefiltro", o, "lr", {"Valor": 0})
+df, o = leer("R8_distribucion"); df.columns = ["Clasificación", "N", "%", "Uso en el análisis"]
+df["Clasificación"] = df["Clasificación"].map({"incluida": "Cochera incluida", "no_tiene": "No tiene (según la IA)",
+    "sin_mencion": "Sin mención (no se envía a la API)", "costo_extra": "Cochera con costo extra", "ambigua": "Ambigua"})
+tabla(df, "t_extraccion", o, "lrrl", {"%": 1})
+df, o = leer("R8_perfil_grupos"); df.columns = ["Grupo", "N", "Precio med. (S/)", "Área med. (m²)", "Baños prom.", "% en clase1"]
+tabla(df, "t_perfil", o, "lrrrrr", {"Precio med. (S/)": 0, "Área med. (m²)": 0, "Baños prom.": 2, "% en clase1": 1})
+df, o = leer("R2_soporte"); df.columns = ["Diagnóstico", "Valor"]; tabla(df, "t_soporte", o, "lr")
+df, o = leer("R2_balance"); df.columns = ["Variable", "SMD sin ponderar", "SMD ponderado (soporte común)"]
+tabla(df, "t_balance", o, "lrr")
+df, o = leer("R3c_principal")
+t = pd.DataFrame({"Estimador": df["estimador"], "N": df["N"], "θ": df["theta"], "EE": df["EE (cluster edificio)"],
+                  "IC 95% (θ)": [f"[{a:.3f}, {b:.3f}]" for a, b in zip(df["IC95 inf"], df["IC95 sup"])],
+                  "% efecto": df["% efecto"], "IC 95% (%)": [f"[{a:.1f}, {b:.1f}]" for a, b in zip(df["% IC inf"], df["% IC sup"])],
+                  "S/ al mes": df["S/ al mes (ref.)"]})
+tabla(t, "t_principal_c", o, "lrrrcrcr", {"θ": 4, "EE": 4, "% efecto": 1, "S/ al mes": 0})
+df, o = leer("R4c_especificaciones")
+t = pd.DataFrame({"Cód.": df["código"], "Especificación": df["especificación"], "Tipo": df["tipo"], "N": df["N"], "θ": df["theta"],
+                  "EE": df["EE"], "IC 95%": [f"[{a:.3f}, {b:.3f}]" for a, b in zip(df["IC95 inf"], df["IC95 sup"])], "% efecto": df["% efecto"]})
+tabla(t, "t_especificaciones_c", o, "llp{3cm}rrrcr", {"θ": 4, "EE": 4, "% efecto": 1})
+df, o = leer("R5c_sensibilidad")
+df.columns = ["Escenario de confusor omitido", "R² con D", "R² con Y", "θ ajustado", "IC inf. ajustado", "% ajustado"]
+tabla(df, "t_sensibilidad_c", o, "lrrrrr", {"θ ajustado": 4, "IC inf. ajustado": 4, "% ajustado": 1})
+df, o = leer("R7c_gate")
+t = pd.DataFrame({"Segmentación": df["segmentación"], "Grupo": df["grupo"], "n": df["n"], "θ_g": df["theta"], "EE": df["ee"],
+                  "IC 95%": [f"[{a:.3f}, {b:.3f}]" for a, b in zip(df["ic_inf"], df["ic_sup"])],
+                  "IC simultáneo": [f"[{a:.3f}, {b:.3f}]" for a, b in zip(df["ic_sim_inf"], df["ic_sim_sup"])],
+                  "% efecto": df["% efecto"], "p Wald": df["p-valor Wald"]})
+tabla(t, "t_gate_c", o, "llrrrccrr", {"θ_g": 4, "EE": 4, "% efecto": 1})
+df, o = leer("R6b_simulacion_binaria")
+df["escenario"] = df["escenario"].str.split(" ").str[0]
+df.columns = ["Escenario", "Estimador", "θ verdadero", "Sesgo", "RMSE", "Cobertura IC 95%", "Long. IC"]
+tabla(df, "t_sim_b", o, "llrrrrr", {"θ verdadero": 2, "Sesgo": 4, "RMSE": 4, "Cobertura IC 95%": 0})
+df, o = leer("R5c_robustez"); df.columns = ["Indicador", "Valor"]; tabla(df, "t_rob_c", o, "lr", {"Valor": 3})
 print("Tablas escritas en", OUT.resolve())

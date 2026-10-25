@@ -1,0 +1,3 @@
+T_cochera,N,precio_mediano,area_mediana,banos_medio,pct_clase1
+Sin cochera (T=0),956,2197.5,65.0,1.5774058577405858,31.903765690376567
+Cochera incluida (T=1),1095,3200.0,96.0,2.0785388127853883,55.98173515981735
