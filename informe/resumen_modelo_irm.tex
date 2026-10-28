@@ -1,0 +1,67 @@
+% Resumen de 2 páginas: cómo se estima el efecto de la cochera (DML-IRM). Compilar: ./tectonic.exe resumen_modelo_irm.tex
+\documentclass[10pt,a4paper]{article}
+\usepackage{fontspec}
+\usepackage[spanish,es-nodecimaldot,es-noshorthands]{babel}
+\usepackage[margin=1.7cm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,tabularx,enumitem}
+\usepackage[most]{tcolorbox}
+\setlength{\parindent}{0pt}\setlength{\parskip}{0.35em}
+\definecolor{azul}{HTML}{1F3A5F}\definecolor{fondo}{HTML}{EEF3F9}
+\newtcolorbox{caja}[1]{colback=fondo,colframe=azul,fonttitle=\bfseries\small,title=#1,boxrule=0.5pt,arc=2pt,left=4pt,right=4pt,top=2pt,bottom=2pt}
+\setlist{itemsep=1pt,topsep=2pt,leftmargin=*}
+\pagestyle{empty}
+
+\begin{document}
+{\Large\bfseries\color{azul} Cómo se estima el efecto de la cochera (Double ML interactivo)}\\[2pt]
+{\small Resumen de la sesión de preguntas sobre \texttt{notebook\_resumen.ipynb}}
+
+\begin{caja}{La pregunta}
+¿Cuánto aumenta el precio de oferta de un alquiler en Lima por incluir cochera, comparando departamentos \textbf{equivalentes en todo lo demás}? El notebook resumen parte de datos ya limpios (\texttt{notebook2}) y de la cochera ya medida con IA (\texttt{notebook2b}): 2\,220 avisos ROOFTOP, de los que 2\,051 tienen el tratamiento definido.
+\end{caja}
+
+\textbf{1. Qué entra al modelo.} \emph{Tratamiento} $D$: cochera incluida (1) o sin cochera (0). Es binario porque la pregunta es ``¿incluye o no?'' y así lo pide el asesor; el 74\,\% de los tratados tiene una sola cochera, y los que tienen 2 o más se tratan igual. \emph{Resultado} $Y=\ln(\text{precio})$: el logaritmo natural convierte diferencias en porcentajes, porque $\ln a-\ln b=\ln(a/b)$, y reduce el peso de los alquileres extremos. \emph{Controles} $X$ (23 columnas): los confusores del DAG (log del área, dormitorios, baños, antigüedad e indicador de faltante, latitud, longitud y distrito), más días publicado y tipo de geocodificación. No entra el precio por m², porque se calcula con el precio.
+
+\textbf{2. Modelo 1: la propensión $m(X)=P(D=1\mid X)$.} Es un clasificador de \textit{gradient boosting} (cientos de árboles). Los árboles parten el espacio de $X$ buscando hojas puras, así que departamentos parecidos quedan juntos, y cada departamento recibe \textbf{su probabilidad de tener cochera}. Por ejemplo: ``un depa como este tiene cochera con probabilidad 0.60''. El modelo no busca 0.50; solo predice lo mejor posible. Se limita (profundidad 4, al menos 20 avisos por hoja, predicción fuera de fold) para que no memorice. Desempeño: AUC = 0.82.
+
+\textbf{3. Soporte común.} Después de entrenar, \emph{tú} revisas cada aviso. Si $m<0.05$ o $m>0.95$, casi todos los parecidos tienen (o no tienen) cochera: no hay gemelo del otro grupo y el aviso se descarta. Se descartó el 5\,\% y quedaron 1\,949 (1\,046 con y 903 sin cochera).
+
+\textbf{4. Modelos 2 y 3: los dos precios de cada departamento.} Se entrenan por separado: el modelo 2 solo con departamentos \emph{con} cochera, $g_1(X)=E[Y\mid D=1,X]$, y el modelo 3 solo con departamentos \emph{sin} cochera, $g_0(X)=E[Y\mid D=0,X]$. Luego \textbf{cada departamento pasa por los dos}: se predice su precio con cochera y su precio sin cochera. Con \textit{cross-fitting} (5 folds agrupados por edificio), cada predicción sale de un modelo que no vio ese departamento ni su edificio.
+
+\begin{caja}{Por qué predecir ``sin cochera'' a un departamento que sí la tiene}
+Cada departamento tiene \textbf{dos precios posibles}, pero solo vemos uno. El otro es el \emph{contrafactual}. El efecto es la diferencia entre ambos, así que hay que estimar el que falta.\\[2pt]
+\begin{tabularx}{\linewidth}{lXX}
+\toprule
+& Precio con cochera & Precio sin cochera \\\midrule
+Depto A (sí tiene) & observado & estimado por el modelo 3 \\
+Depto B (no tiene) & estimado por el modelo 2 & observado \\\bottomrule
+\end{tabularx}
+\end{caja}
+
+\textbf{5. La fórmula (score AIPW).} Para cada departamento $i$ en soporte común:
+\[
+\phi_i=\underbrace{g_1(X_i)-g_0(X_i)}_{\text{diferencia predicha}}
++\underbrace{\frac{D_i\,\big(Y_i-g_1(X_i)\big)}{m(X_i)}}_{\text{corrección si tiene cochera}}
+-\underbrace{\frac{(1-D_i)\,\big(Y_i-g_0(X_i)\big)}{1-m(X_i)}}_{\text{corrección si no tiene}},
+\qquad
+\hat\theta=\frac{1}{n}\sum_{i}\phi_i .
+\]
+\begin{itemize}
+\item \textbf{Primer término:} lo que los modelos de precio creen que suma la cochera a ese departamento.
+\item \textbf{Corrección:} para la versión que sí observamos, se mira cuánto se equivocó el modelo de precio ($Y_i-g$). Si A tiene cochera, cuesta 3\,000 y $g_1$ predijo 3\,050, el error ($-50$) corrige su diferencia. Solo se corrige el término observado: $D_i$ o $(1-D_i)$ apagan el otro.
+\item \textbf{División por $m$ o $1-m$ (pesos).} Da a cada departamento un peso $1/m$. Si entre los departamentos de 60\,m² en San Miguel solo el 20\,\% tiene cochera, cada uno con cochera ``representa'' a $1/0.20=5$ departamentos y cada uno sin cochera a $1/0.80=1.25$. Así, cada tipo de departamento pesa lo mismo en los dos grupos, \emph{como si la cochera se hubiera asignado al azar dentro de cada tipo}. Tras ponderar, todas las diferencias estandarizadas entre grupos son menores que 0.05 (grupos comparables).
+\item \textbf{Promedio:} $\hat\theta$ es el promedio de los $\phi_i$. En porcentaje es $100\,(e^{\hat\theta}-1)$.
+\end{itemize}
+
+\begin{caja}{Por qué así: doble robustez}
+Si los modelos de precio ($g_1,g_0$) son buenos, la corrección es casi cero y manda la diferencia predicha. Si fallan, la corrección ponderada por la propensión compensa el error. Basta con que \textbf{uno de los dos} (propensión o precio) esté bien para que el promedio sea correcto. Además, la forma del score hace que los errores pequeños de los modelos de ML no contaminen el efecto (ortogonalidad).
+\end{caja}
+
+\textbf{6. Resultado.} $\hat\theta=0.0724$, es decir, \textbf{+7.5\,\% (IC 95\,\%: 3.7--11.4\,\%), unos S/\,199 al mes} sobre un alquiler de S/\,2\,650. La diferencia bruta era del 63\,\%: casi todo era tamaño y zona.
+
+\textbf{7. ¿El peso es la causalidad?} No. El peso es solo una herramienta para comparar en igualdad de condiciones. La causalidad es el promedio $\hat\theta$, y es causal \textbf{solo si} se cumplen los supuestos: (i) ningún factor oculto, como la calidad del edificio, influye a la vez en la cochera y el precio; (ii) hay comparables (soporte común); y (iii) la cochera está bien medida (falta la validación humana de la IA).
+
+\begin{caja}{En una línea}
+\textbf{Modelo 1} decide a quién comparar y cuánto pesa cada uno $\;\rightarrow\;$ \textbf{modelos 2 y 3} dan el precio con y sin cochera de cada departamento $\;\rightarrow\;$ la \textbf{fórmula AIPW} corrige y promedia $\;\rightarrow\;$ +7.5\,\%.
+\end{caja}
+
+\end{document}

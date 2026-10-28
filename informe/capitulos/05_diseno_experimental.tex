@@ -1,80 +1,23 @@
 \chapter{Diseño experimental y validación}\label{cap:diseno}
 
-Este capítulo fija, antes de ver los resultados, cómo se comparan los estimadores, qué decisiones se varían y cómo se valida el procedimiento con una verdad conocida. Los protocolos están en la primera celda de \texttt{notebook3b\_efecto\_cochera.ipynb} (cochera) y de \texttt{notebook3\_estimacion\_causal.ipynb} (baños).
+Las decisiones siguientes se fijaron antes de estimar, en el protocolo de \texttt{notebook3b\_efecto\_cochera}, y no se cambiaron en función de los resultados.
 
-\section{Comparadores y métricas}
+\paragraph{Comparadores.} Diferencia sin ajustar, hedónico OLS, DML parcialmente lineal y DML-IRM, este último sin recorte y con soporte común (principal). Los modelos auxiliares se evalúan fuera de fold: AUC, log-loss y Brier para la propensión, y $R^2$ para el precio. El balance se mide con diferencias de medias estandarizadas.
 
-\begin{itemize}[leftmargin=*]
-\item \textbf{Cochera}: diferencia sin ajustar, hedónico OLS, DML-PLR, DML-IRM sin recorte y DML-IRM con soporte común (principal).
-\item \textbf{Baños}: asociación sin ajustar, hedónico OLS y DML-PLR con cuatro \textit{learners} (\textit{histogram gradient boosting} como principal; \textit{gradient boosting}, \textit{random forest} y Lasso como comparadores).
-\item \textbf{Modelos auxiliares}: $R^2$ y error absoluto fuera de fold para el resultado; AUC, log-loss y Brier para la propensión. No se usan para elegir el estimador por su coeficiente.
-\item \textbf{Soporte común}: histograma de la propensión por brazo, porcentaje fuera de $[0.05,0.95]$ y balance antes y después de ponderar.
+\paragraph{Grilla de especificaciones.} Cada especificación cambia una sola decisión respecto de la principal (C1):
+\begin{itemize}[itemsep=0pt]
+\item \textbf{confusores omitidos:} sin área (C2), sin ubicación (C3), sin baños ni dormitorios (C4), sin antigüedad (C5);
+\item \textbf{control inadmisible:} precio por m² (C6);
+\item \textbf{medición:} solo inclusión explícita (C7), cocheras de costo extra como tratadas (C8), indicador de descripción truncada (C9);
+\item \textbf{partición:} folds por bloque de 1\,km (P1).
 \end{itemize}
+Para los baños, la grilla incluye además la cochera como control (S8) y la muestra con todas las precisiones de geocodificación (D3).
 
-\section{Grillas congeladas de especificaciones}
+\paragraph{Criterio de robustez.} El resultado es \emph{robusto} si un confusor omitido tan fuerte como el más fuerte de los observados no lo anula, y \emph{frágil} en caso contrario.
 
-Cada especificación cambia \emph{una sola} decisión respecto de la principal.
-
-\begin{table}[H]
-\centering\small
-\caption{Grilla de especificaciones para la cochera (preespecificada)}\label{tab:grilla_c}
-\begin{tabularx}{\textwidth}{lX>{\raggedright\arraybackslash}p{4.4cm}}
-\toprule
-Código & Especificación & Propósito \\
-\midrule
-C1 & Conjunto de ajuste del DAG, soporte común & Estimador principal \\
-C2 & Sin área & Confusión por tamaño \\
-C3 & Sin ubicación & Confusión por localización \\
-C4 & Sin baños ni dormitorios & Confusión por estándar del proyecto \\
-C5 & Sin antigüedad & Confusión por época de construcción \\
-C6 & + precio por m² & Control derivado de $Y$ (demostración de sesgo) \\
-C7 & Tratamiento estricto (``incluida'' explícita) & Sensibilidad a la medición \\
-C8 & Cochera de costo extra también como $D=1$ & Versiones del tratamiento \\
-C9 & + indicador de descripción truncada & Error de medición por texto incompleto \\
-P1 & Folds y EE por bloque de 1\,km & Dependencia espacial más gruesa \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\begin{table}[H]
-\centering\small
-\caption{Grilla de especificaciones para los baños (preespecificada)}\label{tab:grilla}
-\begin{tabularx}{\textwidth}{lX>{\raggedright\arraybackslash}p{4.4cm}}
-\toprule
-Código & Especificación & Propósito \\
-\midrule
-S1 & Conjunto de ajuste del DAG & Estimador principal \\
-S2 / S3 / S4 & Sin área / sin ubicación / sin antigüedad & Confusión omitida \\
-S4b & Sin dormitorios & Efecto ``paquete'' \\
-S6a / S6b & + precio por m² / + baños por dormitorio & Controles inadmisibles \\
-S7a & Sin tipo de geocodificación & Artefacto de medición \\
-S8 & + cochera medida con IA & Confusor señalado por el BCRP \\
-D1 / D2 & Sin deduplicar / filtro mínimo & Decisiones de depuración \\
-D3 & Todas las precisiones de geocodificación & Efecto de la ubicación imprecisa \\
-P1 / P2 & Folds por bloque de 1\,km / folds aleatorios con EE iid & Dependencia \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-Para ahorrar cómputo, las grillas usan 3 repeticiones del \textit{cross-fitting} en lugar de 10. Por eso la especificación principal de la grilla difiere levemente del estimador principal.
-
-\section{Estrategia de sensibilidad}
-
-Se reportan el valor de robustez (RV y RV$_\alpha$), los benchmarks con cuatro bloques de confusores observados ($1\times$ y $2\times$ su fuerza) y el contorno de sensibilidad. Un resultado se considera \emph{robusto} si un confusor omitido tan fuerte como el más fuerte de los observados no lo anula, y \emph{frágil} en caso contrario.
-
-\section{Validación semisintética}\label{sec:semisint}
-
-La validación (\texttt{notebook4\_semisintetico.ipynb}) responde: \emph{¿los estimadores recuperan el efecto cuando se conoce la respuesta?} Se conservan las covariables reales de la muestra ROOFTOP (ubicaciones, edificios y bloques), y las funciones de confusión se ajustan una vez sobre los datos reales. Así, la confusión simulada tiene la forma no lineal del mercado limeño. Se simulan el tratamiento y el resultado con un efecto conocido.
-
-\paragraph{Tratamiento binario (cochera).} Sobre los 2\,051 avisos con tratamiento definido:
-\begin{align*}
-P(D=1\mid X,U)&=\mathrm{logit}^{-1}\!\big(\mathrm{logit}\,m_0(X)+a\,U\big),\\
-Y&=g_0(X)+0.10\,D+b\,\sigma_\varepsilon U+\sqrt{1-b^2}\,\sigma_\varepsilon Z.
-\end{align*}
-B1: sin confusor omitido ($a=0$). B2: confusor moderado ($a=0.8$, $b^2=0.07$). En B2 se mide la fuerza real de $U$ comparando con un modelo que sí lo observa, y se evalúa si la cota~\eqref{eq:cota} contiene el efecto verdadero.
-
-\paragraph{Tratamiento continuo (baños).} Con efecto verdadero $\theta_0=0.05$, en seis escenarios: E1 sin $U$; E2--E4 con $U$ débil, moderado y fuerte ($R^2$ planteado de 0.02, 0.07 y 0.15); E5 con efecto heterogéneo por clase (0.03, 0.05 y 0.08); E6 con choques comunes por bloque de 1\,km. En E1 se agrega el control inadmisible precio por m².
-
-\paragraph{Métricas.} Con 100 réplicas por escenario (800 en total): sesgo medio, RMSE, cobertura del IC 95\,\% y longitud media del IC; para los escenarios con $U$, cobertura del intervalo ampliado con la cota de sensibilidad; para E5, cobertura de los GATE y potencia de la prueba de Wald.
-
-La simulación \emph{no} demuestra que los efectos estimados con los datos reales sean causales. Muestra en qué condiciones los estimadores funcionan y en cuáles fallan.
+\paragraph{Validación semisintética.} En \texttt{notebook4\_semisintetico} se conservan las covariables reales y se simulan el tratamiento y el precio con un efecto conocido:
+\begin{itemize}[itemsep=0pt]
+\item \textbf{tratamiento binario}, con $P(D=1\mid X,U)=\mathrm{logit}^{-1}(\mathrm{logit}\,m_0(X)+aU)$ y $Y=g_0(X)+0.10\,D+b\sigma U+\text{ruido}$: sin confusor (B1) y con confusor moderado (B2);
+\item \textbf{baños}, con efecto 0.05: sin confusor (E1), con confusor débil, moderado o fuerte (E2--E4), heterogéneo (E5) y con dependencia espacial (E6).
+\end{itemize}
+Con 100 réplicas por escenario (800 en total) se miden el sesgo, el RMSE, la cobertura del IC 95\,\% y si la cota~\eqref{eq:cota} contiene el valor verdadero. La simulación no prueba que el efecto real sea causal; muestra cuándo funcionan los estimadores y cuándo fallan.

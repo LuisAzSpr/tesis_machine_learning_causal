@@ -1,53 +1,50 @@
 \chapter{Conclusiones y recomendaciones}\label{cap:conclusiones}
 
-\section{Respuesta a la pregunta de investigación}
+\section{Respuesta a la pregunta}
 
-Dentro de la población de avisos de alquiler publicados en 13 distritos de Lima Metropolitana con dirección exacta, y bajo el supuesto de que área, dormitorios, baños, antigüedad y ubicación capturan los factores que determinan a la vez la cochera y el precio, \textbf{tener cochera incluida eleva el precio de oferta en 7.5\,\% (IC 95\,\%: 3.7--11.4\,\%)}, unos S/\,199 mensuales sobre un alquiler de S/\,2\,650. La prima es casi nula en los distritos más caros y llega al 18\,\% donde las cocheras son escasas. La estimación es estable ante cambios de estimador, de definición del tratamiento y de partición, y sensible a los errores de especificación que advierte el modelo causal. Su fragilidad es considerable: un factor no observado tan influyente como la antigüedad del edificio bastaría para llevarla cerca de cero.
+Entre avisos de alquiler de departamentos en 13 distritos de Lima con dirección exacta, y bajo el supuesto de que área, distribución, antigüedad y ubicación capturan lo que determina a la vez la cochera y el precio, \textbf{tener cochera incluida eleva el precio de oferta en 7.5\,\% (IC 95\,\%: 3.7--11.4\,\%), unos S/\,199 al mes}. La prima es casi nula donde la cochera es habitual y llega al 18\,\% donde escasea. El resultado es estable ante cambios de estimador y de definición del tratamiento, y sensible a los errores de especificación que advierte el DAG. Su fragilidad es considerable: un confusor tan influyente como la antigüedad bastaría para llevarlo cerca de cero.
 
-\section{Conclusiones por objetivo específico}
+\section{Conclusiones por objetivo}
 
-\paragraph{OE1 (auditoría).} De 3\,739 avisos se obtuvo una muestra de 2\,220, con cada exclusión documentada. La auditoría reveló 243 duplicados (83 de ellos, el mismo aviso registrado en dos distritos), 26 errores de geocodificación y que solo el 70\,\% de las direcciones se ubicó con exactitud.
+\begin{table}[H]
+\centering\small
+\caption{Objetivo, evidencia y conclusión verificable}\label{tab:correspondencia}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{3.2cm}X}
+\toprule
+Objetivo & Evidencia & Conclusión \\
+\midrule
+OE1 Auditoría & Tabla~\ref{tab:exclusiones} & 2\,220 avisos válidos de 3\,739; 243 duplicados y 30\,\% de direcciones imprecisas detectados \\
+OE2 Identificación & Figura~\ref{fig:dag}, tabla~\ref{tab:roles}, figura~\ref{fig:soporte} & Estimando defendible en el soporte común (95\,\% de la muestra, grupos balanceados); amenaza: calidad del edificio \\
+OE3 Estimación & Tabla~\ref{tab:principal_c} & +7.5\,\% frente a 63\,\% bruto; los estimadores coinciden. \textbf{H1 se confirma} \\
+OE4 Variación y sensibilidad & Tabla~\ref{tab:especificaciones_c}, figuras~\ref{fig:sensibilidad_c} y \ref{fig:gate_c} & Los controles importan más que el estimador (\textbf{H2}); efecto heterogéneo por zona (\textbf{H3}); frágil frente a confusores (\textbf{H4}) \\
+OE5 Medición con IA & Tabla~\ref{tab:extraccion} & Medición barata (0.76 USD) y trazable; exploratoria hasta validarla \\
+OE6 Validación & Tabla~\ref{tab:sim_b} & Los estimadores funcionan sin confusión omitida; la cota binaria es optimista \\
+OE7 Trazabilidad & Anexo~\ref{anx:inventario} & Cada resultado es rastreable a su notebook; falta un comando único \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
-\paragraph{OE2 (identificación).} El estimando es el ATE en la población con soporte común (propensión entre 0.05 y 0.95). Se identifica por el criterio \textit{back-door} con el conjunto de ajuste del DAG y queda limitado por la calidad no observada, el error de medición y la selección de publicación.
-
-\paragraph{OE3 (estimación).} La diferencia bruta del 63\,\% se reduce a 7.5\,\% con el DML-IRM; el hedónico (7.8\,\%) y el PLR (7.1\,\%) coinciden. La propensión tiene un AUC de 0.82, solo el 5\,\% de los avisos queda fuera del soporte común y, tras ponderar, todas las diferencias estandarizadas son menores que 0.05. \textbf{H1 se confirma.}
-
-\paragraph{OE4 (variación y sensibilidad).} Omitir la ubicación triplica el efecto y el precio por m² lo anula; las alternativas de medición lo mantienen entre 5.3 y 7.9\,\%. \textbf{H2 se confirma.} El efecto varía por clase de distrito (1.5\,\%, 10.3\,\% y 17.8\,\%; $p=0.0001$), así que \textbf{H3 se confirma} para la cochera. No se respalda para los baños ni por tamaño. El valor de robustez es 0.105, y un confusor tan fuerte como la antigüedad llevaría el efecto a cerca de cero. \textbf{H4 se confirma.}
-
-\paragraph{OE5 (medición con IA).} Con un pre-filtro de regex, fragmentos de ±200 caracteres y un modelo de lenguaje con esquema JSON fijo, se clasificaron 2\,220 avisos por 0.76 USD. La IA distinguió 297 menciones que no implicaban cochera del departamento y 150 cocheras de costo extra. La validación humana de 249 avisos está preparada y pendiente.
-
-\paragraph{OE6 (validación semisintética).} Sin confusión omitida, los estimadores binarios recuperan el efecto (sesgo $\le0.004$, cobertura del 94--96\,\%) y el DML de baños también (cobertura del 93\,\%), mientras que el hedónico lineal de baños se sesga. Con confusión omitida, todos se sesgan. La cota de sensibilidad es fiel para los baños (cobertura del 95--98\,\%), pero optimista para el estimador binario.
-
-\paragraph{OE7 (trazabilidad).} Cada tabla y figura indica su notebook y archivo de origen, las semillas están fijadas y las respuestas de la API quedan en caché. La orden única de ejecución queda pendiente.
-
-\section{Análisis secundario}
-
-Un baño adicional eleva el precio en 3.8\,\% (1.7--6.0\,\%), unos S/\,100 mensuales. Controlar por la cochera apenas lo cambia (3.5\,\%). Con todas las precisiones de geocodificación sería 5.1\,\%: la ubicación imprecisa inflaba el resultado del entregable anterior.
-
-\section{Tres tipos de afirmaciones}
-
-\begin{description}[leftmargin=*]
-\item[Hallazgos observacionales.] Los avisos con cochera incluida se ofrecen un 63\,\% más caros y son más grandes y céntricos. El 6.9\,\% de los avisos con datos completos estaba duplicado y el 30\,\% tenía dirección imprecisa.
-\item[Conclusiones causales condicionadas a los supuestos.] Si el DAG es correcto y no hay confusores omitidos de la fuerza de la antigüedad, la cochera incluida eleva el precio de oferta entre 3.7 y 11.4\,\%, y más donde es escasa.
-\item[Hipótesis para trabajos futuros.] Que la heterogeneidad responda a la escasez de cocheras en la zona. Que la calidad del edificio explique parte de la prima. Que la prima de oferta se traslade al precio de contrato.
-\end{description}
+\paragraph{Tres tipos de afirmaciones.}
+\begin{itemize}[itemsep=1pt]
+\item \textbf{Observacional:} los avisos con cochera cuestan un 63\,\% más, pero casi todo es tamaño y zona.
+\item \textbf{Causal condicionada a los supuestos:} la cochera incluida eleva el alquiler de oferta entre 3.7 y 11.4\,\%, y más donde escasea.
+\item \textbf{Hipótesis futuras:} que la heterogeneidad responda a la escasez y a la normativa, y que la prima de oferta se traslade al contrato.
+\end{itemize}
 
 \section{Límites del trabajo}\label{sec:limites}
 
-\begin{itemize}[leftmargin=*]
-\item La identificación descansa en la ignorabilidad condicional, que solo puede acotarse, no probarse.
-\item La medición del tratamiento con IA no tiene validación humana todavía.
-\item Se supone que un aviso que no menciona cochera no la tiene, y gran parte de las descripciones está truncada por el portal.
-\item La cota de sensibilidad del estimador binario es optimista.
-\item La muestra es un corte transversal de un portal, de un mes y solo con direcciones exactas.
+\begin{itemize}[leftmargin=*,itemsep=1pt]
+\item \textbf{Identificación:} la ignorabilidad solo puede acotarse, y la calidad del edificio no se observa.
+\item \textbf{Medición:} la IA no tiene validación humana. Además, ``sin mención'' se trata como ``sin cochera'', y el 72\,\% de las descripciones podría estar truncado.
+\item \textbf{Tratamiento:} es sí/no; las cocheras múltiples (26\,\% de los tratados) se agrupan y las de costo extra se excluyen.
+\item \textbf{Sensibilidad:} la cota binaria es optimista.
+\item \textbf{Población:} oferta, no contrato; un portal y un mes; solo direcciones exactas, que excluyen el 30\,\% de los avisos.
 \end{itemize}
 
-\section{Recomendaciones y continuidad}
+\section{Recomendaciones}
 
-\begin{enumerate}[leftmargin=*]
-\item \textbf{Validar la medición.} Etiquetar a mano los 249 avisos preparados, reportar precisión, \textit{recall} y kappa, y repetir la estimación corrigiendo por error de clasificación.
-\item \textbf{Medir la calidad del edificio.} Extraer del texto, con el mismo procedimiento, amenidades y acabados (ascensor, piscina, seguridad), y usarlos como \textit{proxies} del confusor principal.
-\item \textbf{Mejorar la sensibilidad binaria.} Revisar la calibración de la cota con el recorte al soporte común, o usar la implementación de referencia de DoubleML.
-\item \textbf{Recuperar direcciones imprecisas} volviendo a geocodificarlas con referencias del texto (parques, avenidas).
-\item \textbf{Reproducibilidad.} Consolidar los notebooks en módulos con pruebas automáticas y una orden única.
+\begin{enumerate}[itemsep=1pt]
+\item \textbf{Validar la medición} con los 249 avisos etiquetados a mano y corregir el efecto con el estimador de \citet{egami2023}.
+\item \textbf{Medir la calidad del edificio} desde el texto (ascensor, acabados, seguridad) para reducir la amenaza principal.
+\item \textbf{Ampliar los datos} a más meses y portales, y \textbf{consolidar el repositorio} con un comando único reproducible.
 \end{enumerate}

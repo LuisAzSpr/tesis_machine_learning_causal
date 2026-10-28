@@ -1,41 +1,25 @@
 \chapter{Discusión}\label{cap:discusion}
 
-\section{Interpretación económica}
+\section{Interpretación}
 
-Entre departamentos publicados con dirección exacta y con igual área, dormitorios, baños, antigüedad y ubicación, los que incluyen cochera se ofrecen en promedio un 7.5\,\% más caros: unos S/\,199 al mes sobre un alquiler de S/\,2\,650, con un intervalo de S/\,98 a 303. Es una prima apreciable, pero muy lejana del 63\,\% de la comparación directa. Casi toda la diferencia bruta se explica porque los departamentos con cochera son más grandes y están en zonas más caras.
+Entre departamentos con dirección exacta y con igual área, distribución, antigüedad y ubicación, los que incluyen cochera se ofrecen en promedio un 7.5\,\% más caros: unos S/\,199 al mes. Casi todo el 63\,\% de la diferencia bruta se debe a que los departamentos con cochera son más grandes y están en zonas más caras.
 
-El hallazgo más interesante es la \textbf{heterogeneidad}. En los distritos de mayor precio (Miraflores, San Isidro, Barranco y Lince), la prima es casi nula (1.5\,\%), y crece al 10\,\% y al 18\,\% en las clases 2 y 3. Una explicación coherente con la teoría hedónica y con el contexto local es la escasez relativa. En Miraflores y San Isidro, la normativa municipal fija un número mínimo de estacionamientos por unidad de vivienda \citep{miraflores2011,sanisidro2020}. En la muestra, la mayoría de los avisos de esos distritos incluye cochera: el 78\,\% en Miraflores y el 68\,\% en San Isidro, frente al 15\,\% en Cercado y el 20\,\% en San Miguel (figura~\ref{fig:coch_dist}). Lince, también en la clase1, es una excepción (41\,\%). Donde la cochera es parte del estándar de la oferta comparable, no distingue a un aviso de otro y su precio implícito es bajo. Donde es escasa, el mercado la paga. Es una hipótesis explicativa, coherente con los datos, pero no contrastada formalmente aquí.
+\paragraph{Heterogeneidad.} La prima es casi nula en los distritos más caros (1.5\,\%) y llega al 18\,\% donde la cochera escasea. Una explicación coherente con la teoría hedónica y con el contexto local es la \emph{escasez relativa}. En Miraflores y San Isidro, la normativa municipal fija un mínimo de estacionamientos por vivienda \citep{miraflores2011,sanisidro2020}, y la mayoría de los avisos incluye cochera (78\,\% y 68\,\%). Allí no distingue a un aviso de otro, mientras que en Cercado (15\,\%) o San Miguel (20\,\%) el mercado la paga. Lince, en la clase1, es una excepción (41\,\%), y la explicación no se contrastó formalmente.
 
-Tres cautelas: (i) es una prima sobre el precio \emph{de oferta}; (ii) se refiere a la población con soporte común y dirección exacta; y (iii) no es una recomendación de inversión. El efecto no dice si construir o asignar una cochera es rentable, porque no considera su costo.
+\section{Contraste con los antecedentes}
 
-\section{Comparación con los antecedentes}
+\begin{itemize}[leftmargin=*]
+\item \textbf{Con el avance previo.} La regresión lineal del \texttt{notebook1} asociaba un baño adicional con S/\,195--298. El análisis causal con direcciones exactas lo reduce a unos S/\,100 (3.8\,\%). Con direcciones imprecisas el efecto sube a 5.1\,\%: la calidad de la geocodificación cambia el resultado.
+\item \textbf{Con los estudios peruanos.} \citet{cacnahuaray2024} y \citet{barrientos2026} identifican la cochera entre los mejores predictores del precio en Lima, y esta tesis confirma que el atributo importa. La diferencia está en qué se mide: esos modelos cuantifican cuánto ayuda la cochera a \emph{predecir}, una medida que la mezcla con el tamaño y la zona. Aquí se mide cuánto cambia el precio por la cochera misma, y resulta mucho menos (7.5\,\% frente a 63\,\%). \citet{mundaca2018} coinciden en la dirección y en que la cochera es el atributo más valorado, pero no son comparables en magnitud, porque estudian la venta y cada cochera adicional.
+\item \textbf{Con el propio mercado.} Los avisos que cobran la cochera aparte piden una mediana de S/\,250 mensuales, del mismo orden que el efecto estimado (S/\,199). Que este sea algo menor es razonable, porque quien la paga aparte la necesita.
+\item \textbf{Con la evidencia internacional.} En Estados Unidos, la cochera incluida eleva el alquiler en torno al 17\,\% \citep{gabbe2017}. Una prima menor en Lima es coherente con que solo alrededor del 17\,\% de los hogares tiene automóvil \citep{limacomovamos2016}.
+\item \textbf{Con la metodología.} La grilla confirma que la flexibilidad del DML no protege contra los malos controles \citep{hunermund2023}. La simulación confirma, además, que el hedónico lineal sobreestima los efectos cuando la confusión es no lineal.
+\end{itemize}
 
-\paragraph{Frente al propio avance previo.} El análisis exploratorio estimaba, con regresiones lineales por clase de distrito, que un baño adicional se asociaba con S/\,195--298 más de alquiler. El análisis causal sobre direcciones exactas lo reduce a unos S/\,100 (3.8\,\%). La diferencia se explica por el ajuste flexible de la confusión y por la calidad de la ubicación: con todas las precisiones de geocodificación el efecto sube a 5.1\,\%. La calidad de la geocodificación cambia el resultado y debe reportarse.
+\section{Amenazas a la validez}
 
-\paragraph{Frente a los estudios peruanos.} Los trabajos predictivos \citep{cacnahuaray2024,barrientos2026} identifican la cochera entre los determinantes más importantes del precio en Lima, y esta tesis lo confirma: el atributo importa. La diferencia está en qué se mide. Esos modelos cuantifican cuánto ayuda la cochera a \emph{predecir} el precio, una medida que mezcla su efecto con el del tamaño y la zona que la acompañan. Aquí se cuantifica cuánto cambia el precio por la cochera misma, y resulta mucho menos de lo que sugiere la asociación (7.5\,\% frente a 63\,\%). La grilla confirma además que la flexibilidad del DML no protege contra los malos controles \citep{hunermund2023}.
+\paragraph{Confusión no observada.} Un confusor tan fuerte como la antigüedad llevaría la prima cerca de cero, y la cota binaria es optimista. El candidato es la calidad del edificio. La heterogeneidad atenúa en parte esta preocupación: si la prima fuera solo calidad omitida, cabría esperarla mayor en las zonas de mayor estándar, y ocurre lo contrario.
 
-\citet{mundaca2018} no son comparables en magnitud con esta tesis, aunque coinciden en la dirección. Estudian precios de venta y el número de cocheras, mientras que esta tesis estudia el alquiler y la inclusión o no de la cochera. Ambos estudios coinciden en que la cochera es el atributo con mayor valoración y en que la ubicación es el principal confusor, que ellos señalan como su limitación.
+\paragraph{Medición.} La clasificación depende del texto, y el 72\,\% de las descripciones termina con la marca ``Leer descripción completa''. Si un aviso con cochera no la menciona, queda como control. Si ese error no difiere entre grupos, atenúa el efecto. La definición estricta (7.9\,\%) y el control por truncamiento (7.4\,\%) no sugieren un sesgo grande, pero falta la validación humana \citep{egami2023}.
 
-\paragraph{Frente al propio mercado.} La comparación más directa en magnitud la ofrece la misma base de datos. Los avisos que cobran la cochera aparte piden una mediana de S/\,250 mensuales (sección~\ref{sec:res_ia}), del mismo orden que el efecto estimado de la cochera incluida (unos S/\,199). Que el efecto sea algo menor es razonable: el inquilino que la paga aparte la eligió porque la necesita.
-
-\paragraph{Frente a la evidencia internacional.} \citet{gabbe2017} estiman que la cochera incluida eleva el alquiler en alrededor de 17\,\% en Estados Unidos. Que en Lima la prima sea menor (7.5\,\%) es coherente con una tenencia de automóviles mucho más baja, de alrededor del 17\,\% de los hogares \citep{limacomovamos2016}.
-
-\section{Por qué el efecto podría estar sesgado}
-
-\paragraph{Confusión no observada.} Un confusor tan fuerte como la antigüedad llevaría la prima de la cochera a cerca de cero, y la simulación muestra que la cota del estimador binario es optimista. El candidato natural es la \emph{calidad del edificio}: los proyectos de mayor estándar suelen incluir cochera y cobrar más por razones que el área y los baños no capturan del todo. La heterogeneidad atenúa en parte esta preocupación: si la prima fuera solo calidad omitida, cabría esperar que fuera mayor donde los edificios son de mayor estándar, y ocurre lo contrario.
-
-\paragraph{Medición del tratamiento.} La clasificación depende del texto, y el 72\,\% de las descripciones termina con la marca ``Leer descripción completa''. Un aviso que no menciona su cochera queda como control. Si ese error es no diferencial, atenúa el efecto, y el valor real sería mayor. La especificación estricta (7.9\,\%) y la que controla por truncamiento (7.4\,\%) no sugieren un sesgo grande, pero la validación humana pendiente es la prueba que falta.
-
-\paragraph{Selección por precisión de la dirección.} Las direcciones exactas son más caras y se concentran en los distritos caros. El efecto estimado no se transporta automáticamente a los avisos con dirección vaga.
-
-\section{Amenazas a la validez y alcance}
-
-\paragraph{Validez interna.} Persisten la confusión no observada, el error de medición del tratamiento y la autocorrelación espacial residual del precio. Esta última se trata con inferencia agrupada.
-
-\paragraph{Validez externa.} La población es la de los avisos de un portal en 13 distritos, durante un mes y con dirección exacta. No se sabe si la prima de oferta se traslada al precio de contrato.
-
-\paragraph{Validez de la medición con IA.} El modelo de lenguaje, con salida estructurada y temperatura 0, distinguió casos que una regex no puede (``no tiene cochera'', estacionamiento de visitas, costo aparte), y el piloto permitió corregir el prompt. Sin embargo, la guía metodológica exige una validación humana independiente antes de tratar la medición como confiable. Hasta entonces, los resultados de la cochera son exploratorios.
-
-\section{Alcance de las aplicaciones}
-
-El resultado sirve como referencia cuantitativa, con su incertidumbre y su fragilidad declaradas, para la tasación de alquileres y para entender cómo el mercado valora la cochera según la zona. No justifica afirmar que agregar una cochera elevará la renta en un 7.5\,\% en cualquier distrito, ni hacer recomendaciones sin considerar costos.
+\paragraph{Población.} Precios de oferta, un solo portal y un solo mes, y solo direcciones exactas, que en promedio son más caras. Los resultados no se transportan a contratos, a todo el parque residencial ni a avisos con dirección vaga. Tampoco justifican afirmar que agregar una cochera elevará la renta en un 7.5\,\% en cualquier distrito.
