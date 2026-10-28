@@ -1,126 +1,59 @@
-\chapter{Diccionario de variables}\label{anx:diccionario}
+\chapter{Correspondencia con la rúbrica de evaluación}\label{anx:rubrica}
 
 \begin{table}[H]
 \centering\small
-\caption{Variables del archivo crudo y faltantes (N = 3\,739)}
-\resizebox{\textwidth}{!}{\input{tablas/t_diccionario}}
-\origen{\texttt{notebook2\_auditoria.ipynb} $\rightarrow$ \texttt{R1\_diccionario.csv}.}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.4cm}r>{\raggedright\arraybackslash}X}
+\toprule
+Criterio de la rúbrica & Puntos & Dónde se desarrolla \\
+\midrule
+Justificación científica & 2 & Sección~\ref{sec:justif} \\
+Hipótesis, objetivos & 2 & Secciones~\ref{sec:pregunta}--\ref{sec:hipotesis} y tabla~\ref{tab:hipotesis} \\
+Revisión de antecedentes teóricos y experimentales & 2 & Capítulo~\ref{cap:estado} (secciones~\ref{sec:ant_teo} y \ref{sec:ant_exp}) y anexo~\ref{anx:busqueda} \\
+Presentación de resultados teóricos y/o experimentales & 4 & Teóricos: capítulos~\ref{cap:marco}--\ref{cap:diseno}. Experimentales: capítulo~\ref{cap:resultados} (tabla~\ref{tab:resumen_res}) \\
+Discusión de resultados & 2 & Capítulo~\ref{cap:discusion} \\
+Conclusiones & 2 & Capítulo~\ref{cap:conclusiones} (tabla~\ref{tab:correspondencia}) \\
+Bibliografía & 1 & 44 referencias en APA 7, con DOI verificados en Crossref y todas citadas en el texto \\
+\bottomrule
+\end{tabularx}
 \end{table}
 
 \chapter{Registro de la búsqueda bibliográfica}\label{anx:busqueda}
 
-\paragraph{Pregunta orientadora (PCC).} Población: mercados de vivienda urbana, en especial de alquiler. Concepto: efecto de atributos de la vivienda sobre el precio, estimado con métodos hedónicos, predictivos o causales. Contexto: Perú y comparadores internacionales.
+\textbf{Fuentes:} Google Scholar, RePEc, arXiv, NBER, Crossref; repositorios peruanos (ALICIA-CONCYTEC, UNI, UPeU, ESAN, Universidad de Lima, Universidad del Pacífico, IEP), BCRP y normativa municipal. Los metadatos se verificaron el 21 y el 25 de octubre de 2026.
 
-\paragraph{Fuentes.} Google Scholar, RePEc/IDEAS, arXiv, NBER, repositorios institucionales peruanos (UPeU, Universidad de Lima, UNALM, ESAN) y publicaciones del BCRP. Los metadatos de las referencias con DOI se verificaron contra Crossref el 21 de octubre de 2026.
-
-\paragraph{Cadenas principales.}
-\begin{itemize}[leftmargin=*]
-\item \path{("double machine learning" OR "causal forest" OR "doubly robust") AND ("housing" OR "rental" OR "real estate" OR "hedonic")}
-\item \path{("precios hedónicos" OR "índice de precios de inmuebles") AND Lima}
-\item \path{("machine learning" OR "aprendizaje automático") AND ("alquiler" OR "departamentos") AND Lima}
-\item \path{("omitted variable bias" OR "sensitivity analysis") AND ("causal machine learning" OR "double machine learning")}
+\textbf{Cadenas principales:}
+\begin{itemize}[itemsep=0pt]
+\item \path{("double machine learning" OR "causal forest") AND (housing OR rental OR hedonic)}
+\item \path{"precio alquiler departamentos Lima" AND (hedónico OR "machine learning" OR estacionamiento OR cochera)}
+\item \path{("inferencia causal" OR "diferencias en diferencias") AND vivienda AND (Lima OR Perú)}
+\item \path{("bundled parking" OR "parking premium") AND rent}
+\item \path{("large language model" OR GPT) AND ("real estate" OR housing) AND listing}
 \end{itemize}
 
-\paragraph{Cadenas adicionales (frente peruano y cochera).}
-\begin{itemize}[leftmargin=*]
-\item \path{"precio alquiler departamentos Lima" AND ("hedónico" OR "machine learning" OR "estacionamiento" OR "cochera")}
-\item \path{("inferencia causal" OR "diferencias en diferencias" OR "double machine learning") AND vivienda AND (Lima OR Perú)}
-\item \path{("bundled parking" OR "parking premium") AND (rent OR rental)}
-\item \path{("large language model" OR GPT) AND ("real estate" OR "housing") AND (listing OR advertisement)}
-\item Normativa: ordenanzas de parámetros urbanísticos de Miraflores y San Isidro (estacionamientos mínimos por unidad de vivienda).
-\end{itemize}
-Repositorios peruanos consultados: ALICIA (CONCYTEC), UNI, UPeU, ESAN, Universidad de Lima, Universidad del Pacífico, IEP y BCRP.
+\textbf{Criterios:} se incluyeron estudios que estiman precios implícitos, predicen precios o identifican efectos de atributos de la vivienda, y los trabajos metodológicos usados directamente. Se excluyeron los estudios sin metadatos verificables y las versiones duplicadas, en cuyo caso se cita la versión publicada.
 
-\paragraph{Criterios.} Inclusión: estudios con datos de vivienda que estimen precios implícitos, predigan precios o identifiquen efectos de atributos o amenidades; y trabajos metodológicos usados directamente en la tesis. Exclusión: estudios sin acceso a los metadatos completos, trabajos duplicados entre versiones (se cita la versión publicada cuando existe) y estudios de valuación comercial sin método documentado.
+\chapter{Reproducibilidad y trazabilidad}\label{anx:inventario}
 
 \begin{table}[H]
 \centering\footnotesize
-\caption{Matriz de extracción resumida de los antecedentes}
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}X}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{5cm}X}
 \toprule
-Trabajo & Resultado / datos & Identificación & Límite respecto de esta tesis \\
+Artefacto (\path{notebooks/}) & Contenido \\
 \midrule
-\citet{mundaca2018} & Precio de venta, Lima 2008--2016 & Hedónico (no causal) & Índice de precios; cocheras y baños ``muy valorados'' sin estrategia causal; ubicación solo por distrito \\
-\citet{mayo2017} & Venta de vivienda nueva, Lima (Fondo MiVivienda) & Índice hedónico & Objetivo de índice; no estudia atributos ni alquiler \\
-\citet{rivera2018} & Precio/m², Lima 2005--2017 & Regresión de determinantes & Usa una transformación del resultado como variable dependiente \\
-\citet{cacnahuaray2024} & Alquiler, Lima 2023 & Predicción (AutoML) & Cochera entre los predictores más fuertes; no estima efectos \\
-\citet{barrientos2026} & Venta, Lima (BCRP, 40\,000 registros) & Predicción + importancias & Importancias $\neq$ efectos causales \\
-\citet{contreras2024} & Informalidad, Lima & Diferencias en diferencias & Causal, pero no estudia precios \\
-\citet{gabbe2017} & Alquiler, EE.\,UU. & Hedónico & Cochera incluida +17\,\%; mercado con alta tenencia de autos \\
-\citet{faxvaag2026} & Avisos, Oslo & LLM + valuación & Extrae el estacionamiento con GPT; objetivo predictivo \\
-\citet{egami2023} & Metodológico & DSL (doblemente robusto) & Requiere validar las etiquetas de LLM con personas \\
-\citet{tapia2025} & Venta, Santiago & Valuación automática & Objetivo predictivo \\
-\citet{gyger2026} & Alquiler, Alemania & Predicción explicable & Modela dependencia espacial, sin identificación causal \\
-\citet{chen2026} & Venta, Nueva York & DiD y Monte Carlo empírico & Tratamiento distinto (amenidad ambiental) \\
-\citet{sirmans2005} & Revisión de estudios hedónicos & -- & Evidencia de la variabilidad de los coeficientes según la especificación \\
+\path{notebook2_auditoria} & R1: limpieza, duplicados, ROOFTOP; genera \path{csv/data_causal_base.csv} \\
+\path{notebook2b_extraccion_ia} + \path{extraccion_ia.py} & R8: extracción de la cochera (regex + OpenAI, con caché) \\
+\path{notebook3b_efecto_cochera} & R2--R5, R7: resultado principal \\
+\path{notebook3_estimacion_causal} & Análisis secundario (baños) \\
+\path{notebook4_semisintetico} + \path{semisintetico.py} & R6: validación semisintética \\
+\path{notebook_resumen} & EDA resumido y recorrido de toda la tesis \\
+\path{causal_utils.py} & Estimadores DML (PLR, IRM), GATE, sensibilidad, Moran \\
+\path{informe/tablas_manuscrito.py} & Convierte los CSV de resultados en las tablas del informe \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\chapter{Inventario de artefactos y trazabilidad}\label{anx:inventario}
+\textbf{Orden de ejecución:} \path{notebook2} $\rightarrow$ \path{2b} $\rightarrow$ \path{3b} $\rightarrow$ \path{3} $\rightarrow$ \path{4} $\rightarrow$ \path{notebook_resumen} $\rightarrow$ \path{tablas_manuscrito.py} $\rightarrow$ compilación. La semilla es \path{SEED = 42}. Una segunda ejecución completa reprodujo exactamente las 29 tablas y los resúmenes.
 
-\begin{table}[H]
-\centering\footnotesize\setstretch{1.1}
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{5.2cm}X}
-\toprule
-Artefacto & Contenido \\
-\midrule
-\path{notebooks/notebook0_data_wrangling.ipynb} & Construcción del CSV usado por el análisis exploratorio previo \\
-\path{notebooks/notebook1.ipynb} & Análisis exploratorio y pruebas de hipótesis asociativas (entregable previo) \\
-\path{notebooks/notebook_causal.ipynb} & Primer DML, PC/LiNGAM y refutadores (entregable previo) \\
-\path{notebooks/notebook2_auditoria.ipynb} & OE1 · R1: auditoría, deduplicación, exclusiones, agrupamientos, F2 \\
-\path{notebooks/notebook2b_extraccion_ia.ipynb} & OE5 · R8: extracción de la cochera con regex + OpenAI; muestra de validación \\
-\path{notebooks/notebook3b_efecto_cochera.ipynb} & OE2--OE4 · tratamiento principal: R2, R3, R4, R5, R7; F1b, F3, F4c, F5c, F7c \\
-\path{notebooks/notebook3_estimacion_causal.ipynb} & Análisis secundario (baños): R3, R4, R5, R7 y dependencia espacial \\
-\path{notebooks/notebook4_semisintetico.ipynb} & OE6 · R6: validación semisintética (baños y cochera); F6, F6b \\
-\path{notebooks/causal_utils.py} & Funciones compartidas: muestra, DML-PLR agrupado, GATE, sensibilidad, Moran \\
-\path{notebooks/semisintetico.py} & Proceso generador y réplicas de la simulación \\
-\path{notebooks/extraccion_ia.py} & Regex, fragmentos, enmascarado, prompt, esquema JSON y caché de la API \\
-\path{csv/cochera_llm_cache.jsonl} & Respuestas de la API (privado, no se versiona) \\
-\path{csv/validacion_cochera_para_etiquetar.csv} & 249 avisos para la validación humana (privado) \\
-\path{notebooks/resultados/tablas/*.csv|.tex} & Tablas de resultados (una por bloque R1--R7) \\
-\path{notebooks/resultados/figuras/*.png} & Figuras F1--F7 \\
-\path{notebooks/resultados/resumen_principal.json} & Cifras del estimador principal citadas en el texto \\
-\path{informe/tablas_manuscrito.py} & Convierte los CSV en las tablas compactas del manuscrito \\
-\path{csv/data_causal_base.csv} & Base auditada sin textos ni direcciones (no se publica) \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\textbf{Software:} Python 3.13, pandas 3.0, scikit-learn 1.9 \citep{pedregosa2011}, statsmodels 0.15 y \texttt{gpt-4.1-mini-2025-04-14}, con el prompt v2.
 
-\paragraph{Orden de ejecución.} \path{notebook2} $\rightarrow$ \path{notebook2b} $\rightarrow$ \path{notebook3b} $\rightarrow$ \path{notebook3} $\rightarrow$ \path{notebook4} $\rightarrow$ \path{informe/tablas_manuscrito.py} $\rightarrow$ compilación del manuscrito. Todas las semillas están fijadas (\path{SEED = 42}). El \path{notebook2b} requiere la variable \path{API_KEY_OPENAI} en el archivo \path{.env}; si la caché está completa, no realiza llamadas. La automatización en un único comando y la estructura definitiva del repositorio quedan para el siguiente entregable.
-
-\paragraph{Privacidad.} Los archivos de datos (\path{data/}, \path{csv/}) están excluidos del control de versiones. La base auditada no contiene descripciones, direcciones, teléfonos ni identificadores de anunciantes.
-
-\chapter{Versiones de software}\label{anx:software}
-
-Python 3.13.15; pandas 3.0.6; NumPy 2.5.3; scikit-learn 1.9.1 \citep{pedregosa2011}; SciPy 1.18.1; statsmodels 0.15.0; matplotlib 3.11.2; seaborn 0.13.2; NetworkX 3.7; joblib 1.6.0; nbclient 0.11.0; httpx 0.28.1. Modelo de lenguaje: OpenAI 	exttt{gpt-4.1-mini-2025-04-14}, temperatura 0, prompt versión v2 (en \path{extraccion_ia.py}). En el entregable previo se usaron además EconML 0.17.0, DoWhy 0.14 y causal-learn 0.1.4.8. El manuscrito se compiló con Tectonic 0.15.0 (XeTeX).
-
-\chapter{Tablas suplementarias}\label{anx:suplementarias}
-
-\begin{table}[H]
-\centering\small
-\caption{Variantes de la muestra analítica}\label{tab:variantes}
-\input{tablas/t_variantes}
-\origen{\texttt{notebook2\_auditoria.ipynb} $\rightarrow$ \texttt{R1\_variantes\_muestra.csv}.}
-\end{table}
-
-\begin{table}[H]
-\centering\small
-\caption{Agrupamientos usados para la partición y la inferencia (muestra principal)}\label{tab:agrupamientos}
-\resizebox{\textwidth}{!}{\input{tablas/t_agrupamientos}}
-\origen{\texttt{notebook2\_auditoria.ipynb} $\rightarrow$ \texttt{R1\_agrupamientos.csv}.}
-\end{table}
-
-\begin{table}[H]
-\centering\small
-\caption{Indicadores de robustez del efecto de un baño adicional}\label{tab:robustez}
-\input{tablas/t_robustez}
-\origen{\texttt{notebook3\_estimacion\_causal.ipynb}, sección 4 $\rightarrow$ \texttt{R5\_robustez.csv}.}
-\end{table}
-
-\begin{table}[H]
-\centering\small
-\caption{Indicadores de robustez del efecto de la cochera}
-\input{tablas/t_rob_c}
-\origen{\texttt{notebook3b\_efecto\_cochera.ipynb}, sección 5 $\rightarrow$ \texttt{R5c\_robustez.csv}.}
-\end{table}
+\textbf{Privacidad:} los datos (\path{data/}, \path{csv/}) y la clave (\path{.env}) no se versionan, y la base analítica no contiene descripciones, direcciones ni teléfonos.

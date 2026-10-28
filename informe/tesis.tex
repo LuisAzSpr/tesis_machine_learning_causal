@@ -30,23 +30,23 @@
 % ------------------------------------------------------------------ portada
 \begin{titlepage}
 \centering
-{\large \pendiente{UNIVERSIDAD}\par}
-{\large \pendiente{FACULTAD}\par}
-{\large \pendiente{ESCUELA PROFESIONAL}\par}
-\vspace{2.5cm}
-{\Large\bfseries INFERENCIA CAUSAL ESPACIAL ASISTIDA POR INTELIGENCIA ARTIFICIAL PARA LA VALORACIÓN CONTRAFACTUAL DE ATRIBUTOS RESIDENCIALES: EL EFECTO DE LA COCHERA INCLUIDA EN EL PRECIO DE OFERTA DE ALQUILER EN LIMA METROPOLITANA\par}
-\vspace{2cm}
-{\large TESIS\par}
-{\large Para optar el título profesional de \pendiente{título}\par}
-\vspace{1.5cm}
-{\large Elaborada por\par}
-{\large\bfseries Luis Azaña\par}
-\vspace{1cm}
-{\large Asesor\par}
-{\large \pendiente{Nombre del asesor}\par}
+{\Large\bfseries UNIVERSIDAD NACIONAL DE INGENIERÍA\par}
+\vspace{0.2cm}
+{\large FACULTAD DE CIENCIAS\par}
+{\large ESCUELA PROFESIONAL DE CIENCIA DE LA COMPUTACIÓN\par}
+\vspace{2.2cm}
+{\Large\bfseries INFERENCIA CAUSAL ESPACIAL ASISTIDA POR INTELIGENCIA ARTIFICIAL PARA LA VALORACIÓN CONTRAFACTUAL DE ATRIBUTOS RESIDENCIALES: EL EFECTO DE LA COCHERA INCLUIDA EN EL PRECIO DE OFERTA DE ALQUILER DE DEPARTAMENTOS EN LIMA METROPOLITANA\par}
+\vspace{1.6cm}
+{\large INFORME DE TESIS\par}
+\vspace{1.8cm}
+\begin{tabular}{>{\bfseries}l l}
+Nombre: & Luis Angel Azaña Vega \\[4pt]
+Código: & 20212195D \\[4pt]
+Carrera: & Ciencia de la Computación \\[4pt]
+Asesor: & Cesar Jesús Lara Ávila \\
+\end{tabular}
 \vfill
-{\large Lima, Perú\par}
-{\large 2026\par}
+{\large Lima, 30 de octubre de 2026\par}
 \end{titlepage}
 
 \pagenumbering{roman}
@@ -54,19 +54,17 @@
 % ------------------------------------------------------------------ resumen
 \chapter*{Resumen}
 \addcontentsline{toc}{chapter}{Resumen}
-Esta tesis estima el efecto causal de que un departamento en alquiler incluya cochera sobre su precio de oferta en Lima Metropolitana. A diferencia de los trabajos locales previos, que predicen precios, el objetivo es separar la asociación hedónica del efecto atribuible al atributo bajo supuestos explícitos. Se auditaron 3\,739 avisos obtenidos por \textit{web scraping} en 13 distritos (marzo de 2025): se eliminaron 243 duplicados (83 de ellos, el mismo aviso registrado en dos distritos) y se conservaron solo las direcciones geocodificadas con precisión exacta (\texttt{ROOFTOP}), con lo que la muestra queda en 2\,220 avisos. La disponibilidad de cochera no figuraba en los datos: se extrajo del texto de cada aviso combinando un filtro con expresiones regulares y un modelo de lenguaje (\texttt{gpt-4.1-mini}, salida JSON con esquema fijo), con un costo total de 0.76 USD. Un grafo acíclico dirigido justifica el conjunto de ajuste: área, dormitorios, baños, antigüedad, ubicación, días publicado y tipo de geocodificación. El estimador principal es Double Machine Learning interactivo (IRM/AIPW), con \textit{cross-fitting} agrupado por edificio, errores estándar agrupados y recorte al soporte común (propensión entre 0.05 y 0.95; 1\,949 avisos). La diferencia bruta es del 63\,\%; el efecto estimado es de \textbf{7.5\,\% (IC 95\,\%: 3.7--11.4\,\%)}, unos S/\,199 mensuales sobre un alquiler de referencia de S/\,2\,650. El efecto es heterogéneo: casi nulo en los distritos de mayor precio (1.5\,\%) y mayor donde las cocheras son escasas (10\,\% y 18\,\%; Wald, $p<0.001$). Como análisis secundario, un baño adicional eleva el precio en 3.8\,\% (1.7--6.0\,\%). Ambos resultados son moderadamente frágiles: un confusor omitido tan fuerte como la antigüedad los llevaría cerca de cero. Una validación semisintética con 800 réplicas muestra que los estimadores recuperan el efecto cuando no hay confusión omitida, pero que la cota de sensibilidad del estimador binario es optimista. Los resultados son causales solo de forma condicional a los supuestos, válidos para la población de avisos publicados y exploratorios mientras la extracción con IA no se valide con etiquetas humanas.
+Esta tesis estima el efecto causal de que un departamento en alquiler en Lima Metropolitana incluya cochera sobre su precio de oferta. Los estudios peruanos previos coinciden en que la cochera es un atributo relevante, pero la abordan con modelos asociativos o predictivos. Se auditaron 3\,739 avisos de 13 distritos obtenidos por \textit{web scraping} (marzo de 2025): se eliminaron 243 duplicados y se conservaron solo las direcciones geocodificadas con exactitud, con lo que quedaron 2\,220 avisos. La cochera se midió desde el texto de cada aviso combinando expresiones regulares y un modelo de lenguaje con salida estructurada, por 0.76 USD. Un grafo causal justifica el ajuste por área, dormitorios, baños, antigüedad y ubicación. El estimador es Double Machine Learning interactivo (AIPW), con \textit{cross-fitting} agrupado por edificio y recorte al soporte común. La diferencia bruta de precios es del 63\,\%; el efecto estimado es de \textbf{7.5\,\% (IC 95\,\%: 3.7--11.4\,\%)}, unos S/\,199 mensuales, del mismo orden que los S/\,250 que piden los avisos que cobran la cochera aparte. El efecto es casi nulo en los distritos donde la normativa exige estacionamientos y la cochera es habitual (1.5\,\%), y mayor donde escasea (10--18\,\%; $p<0.001$). Un baño adicional eleva el precio en 3.8\,\%. Ambos resultados son moderadamente frágiles: un confusor omitido tan fuerte como la antigüedad los llevaría cerca de cero. Una validación semisintética confirma que los estimadores recuperan el efecto sin confusión omitida y que la cota de sensibilidad binaria es optimista. Los resultados son causales solo bajo los supuestos declarados y exploratorios hasta validar la medición con etiquetas humanas.
 
 \noindent\textbf{Palabras clave:} inferencia causal; Double Machine Learning; precios hedónicos; alquiler; cochera; modelos de lenguaje; análisis de sensibilidad; Lima.
 
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
-This thesis estimates the causal effect of an included parking space on the asking rent of apartments in Metropolitan Lima. Unlike previous local studies, which predict prices, the goal is to separate hedonic association from the effect attributable to the attribute under explicit assumptions. We audited 3,739 web-scraped listings from 13 districts (March 2025), removed 243 duplicates (83 of them the same listing recorded under two districts) and kept only exactly geocoded addresses (\texttt{ROOFTOP}), leaving 2,220 listings. Parking availability was not a structured field: it was extracted from each listing's text with a regular-expression filter followed by a language model (\texttt{gpt-4.1-mini}, fixed JSON schema), at a total cost of USD 0.76. A directed acyclic graph justifies the adjustment set: floor area, bedrooms, bathrooms, building age, location, days on market and geocoding type. The main estimator is an interactive Double Machine Learning model (IRM/AIPW) with building-grouped cross-fitting, cluster-robust standard errors and trimming to the common-support population (propensity between 0.05 and 0.95; 1,949 listings). The raw difference is 63\%; the estimated effect is \textbf{7.5\% (95\% CI: 3.7--11.4\%)}, about PEN 199 per month for a reference rent of PEN 2,650. The effect is heterogeneous: almost zero in the most expensive districts (1.5\%) and larger where parking is scarce (10\% and 18\%; Wald $p<0.001$). As a secondary analysis, an additional bathroom raises rent by 3.8\% (1.7--6.0\%). Both results are moderately fragile: an omitted confounder as strong as building age would bring them close to zero. A semi-synthetic validation with 800 replications shows that the estimators recover the effect without omitted confounding, but that the sensitivity bound of the binary estimator is optimistic. The findings are causal only conditionally on the stated assumptions, apply to published listings, and remain exploratory until the AI extraction is validated against human labels.
+This thesis estimates the causal effect of an included parking space on the asking rent of apartments in Metropolitan Lima. Previous Peruvian studies agree that parking is a relevant attribute but rely on associative or predictive models. We audited 3,739 web-scraped listings from 13 districts (March 2025), removed 243 duplicates and kept only exactly geocoded addresses, leaving 2,220 listings. Parking was measured from each listing's text with regular expressions and a language model with structured output, at a cost of USD 0.76. A causal graph justifies adjusting for floor area, bedrooms, bathrooms, building age and location. The estimator is an interactive Double Machine Learning model (AIPW) with building-grouped cross-fitting and trimming to common support. The raw price gap is 63\%; the estimated effect is \textbf{7.5\% (95\% CI: 3.7--11.4\%)}, about PEN 199 per month, of the same order as the PEN 250 asked by listings that charge for parking separately. The effect is almost zero in districts where regulations require parking and it is common (1.5\%), and larger where it is scarce (10--18\%; $p<0.001$). An additional bathroom raises rent by 3.8\%. Both results are moderately fragile: an omitted confounder as strong as building age would bring them close to zero. A semi-synthetic validation confirms that the estimators recover the effect without omitted confounding and that the binary sensitivity bound is optimistic. The findings are causal only under the stated assumptions and exploratory until the measurement is validated against human labels.
 
 \noindent\textbf{Keywords:} causal inference; double machine learning; hedonic pricing; rental housing; parking; large language models; sensitivity analysis; Lima.
 
 \tableofcontents
-\listoftables
-\listoffigures
 
 \clearpage
 \pagenumbering{arabic}
@@ -80,7 +78,7 @@ This thesis estimates the causal effect of an included parking space on the aski
 \input{capitulos/07_discusion}
 \input{capitulos/08_conclusiones}
 
-\input{capitulos/referencias}
+{\small\input{capitulos/referencias}}
 
 \appendix
 \input{capitulos/anexos}

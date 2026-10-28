@@ -16,11 +16,11 @@
 \setbeamertemplate{itemize items}[circle]
 \newcommand{\dato}[2]{\begin{minipage}[t]{0.42\linewidth}\centering{\Huge\bfseries\color{azul}#1}\\[2pt]{\small #2}\end{minipage}}
 
-\title{Efecto causal de la cochera incluida en el precio de oferta de alquiler en Lima Metropolitana}
+\title{Efecto causal de la cochera incluida en el precio de oferta de alquiler de departamentos en Lima Metropolitana}
 \subtitle{Inferencia causal espacial asistida por inteligencia artificial}
-\author{Luis Azaña}
-\institute{Seminario de Tesis 2}
-\date{2026}
+\author{Luis Angel Azaña Vega (20212195D)\\[2pt]{\small Asesor: Cesar Jesús Lara Ávila}}
+\institute{Universidad Nacional de Ingeniería · Facultad de Ciencias\\Escuela Profesional de Ciencia de la Computación}
+\date{30 de octubre de 2026}
 
 \begin{document}
 
@@ -43,6 +43,29 @@
 \begin{center}
 \dato{+63\%}{diferencia\\sin ajustar}\hspace{0.5em}\dato{?}{efecto\\causal}
 \end{center}
+\end{columns}
+\end{frame}
+
+% 2b ----------------------------------------------------------------
+\begin{frame}{Antecedentes y vacío}
+\begin{columns}[T]
+\column{0.5\textwidth}\small
+\textbf{En Perú}
+\begin{itemize}
+\item BCRP (2018), UNI (2017), ULima (2018): índices hedónicos de \emph{venta}; la cochera, entre lo más valorado.
+\item UPeU (2024), ESAN (2026): ML \emph{predictivo}; la cochera, entre los predictores más fuertes.
+\item IEP (2024): único estudio causal de vivienda en Lima (Metro y informalidad).
+\item Ordenanzas de Miraflores y San Isidro: \textbf{estacionamientos mínimos por vivienda}.
+\end{itemize}
+\column{0.47\textwidth}\small
+\textbf{Teoría y métodos}
+\begin{itemize}
+\item Double ML (Chernozhukov et al., 2018); malos controles (Hünermund et al., 2023).
+\item IA sobre avisos: GPT extrae el estacionamiento (Faxvaag et al., 2026); validar con humanos (Egami et al., 2023).
+\item Cochera incluida en alquiler: +17\,\% en EE.\,UU. (Gabbe y Pierce, 2017).
+\end{itemize}
+\vspace{0.2cm}
+\textbf{Vacío}: nadie estima \emph{causalmente} el valor de la cochera en el alquiler de Lima.
 \end{columns}
 \end{frame}
 
@@ -184,7 +207,7 @@ Ambigua (excluido) & 19 \\
 \includegraphics[width=\textwidth]{F4c_estimadores_cochera.png}
 \end{columns}
 \vspace{0.2cm}
-\footnotesize Sin ajustar: 63\,\% $\rightarrow$ hedónico 7.8\,\% · PLR 7.1\,\% · IRM 7.5\,\%. Sin recorte, el IRM es inestable (IC de $-2.7$ a 11.9\,\%). \textbf{H1 se confirma.}
+\footnotesize Sin ajustar: 63\,\% $\rightarrow$ hedónico 7.8\,\% · PLR 7.1\,\% · IRM 7.5\,\%. \textbf{H1 se confirma.} Referencia de mercado: quien cobra la cochera aparte pide una mediana de \textbf{S/ 250}.
 \end{frame}
 
 % 10 ----------------------------------------------------------------
@@ -264,37 +287,16 @@ Bloques de 1\,km & 7.7\,\% \\
 \end{frame}
 
 % 14 ----------------------------------------------------------------
-\begin{frame}{Conclusiones y límites}
+\begin{frame}{Conclusiones, límites y continuidad}
+\small
 \begin{itemize}
-\item \textbf{Respuesta}: bajo los supuestos del DAG, tener cochera incluida eleva el precio de oferta en \textbf{7.5\,\%} (3.7--11.4\,\%), unos S/\,199 al mes; casi nada en los distritos más caros y hasta 18\,\% donde escasea.
-\item \textbf{Observacional}: casi todo el 63\,\% bruto es tamaño y zona.
-\item \textbf{Metodológico}: la IA permite medir un atributo del texto por menos de 1 USD; la geocodificación exacta cambia los resultados.
-\item \textbf{Límites}: confusor de calidad del edificio, medición con IA sin validación humana, cota de sensibilidad optimista, un portal y un mes.
-\item \textbf{No se afirma}: que agregar una cochera sea rentable, ni que valga para contratos o para toda Lima.
+\item \textbf{Respuesta}: bajo los supuestos del DAG, tener cochera incluida eleva el alquiler de oferta en \textbf{7.5\,\%} (3.7--11.4\,\%), $\approx$ S/\,199 al mes; casi nada donde la normativa la hace habitual y hasta 18\,\% donde escasea.
+\item \textbf{Discusión}: coincide con los estudios peruanos en que la cochera importa, pero mide su efecto real; no es comparable en magnitud con el BCRP (venta, n.º de cocheras); es del orden de los S/\,250 que pide el mercado.
+\item \textbf{Aporte}: auditoría reproducible, medición con IA por menos de 1 USD, efecto con soporte común y evidencia de heterogeneidad.
+\item \textbf{Límites}: calidad del edificio no observada, IA sin validación humana, cota de sensibilidad optimista, un portal y un mes, solo direcciones exactas.
+\item \textbf{Siguiente}: validar 249 avisos, medir la calidad del edificio desde el texto y un repositorio reproducible.
 \end{itemize}
-\end{frame}
-
-% 15 ----------------------------------------------------------------
-\begin{frame}{Contribución y continuidad}
-\begin{columns}[T]
-\column{0.48\textwidth}
-\textbf{Contribución verificable}
-\begin{itemize}\small
-\item Auditoría reproducible (duplicados, precisión de la dirección).
-\item Medición barata y trazable de atributos con IA.
-\item Efecto con soporte común, balance e inferencia agrupada.
-\item Evidencia de heterogeneidad por escasez.
-\end{itemize}
-\column{0.48\textwidth}
-\textbf{Siguiente paso}
-\begin{itemize}\small
-\item Validación humana de 249 avisos.
-\item Medir la calidad del edificio desde el texto.
-\item Mejorar la cota de sensibilidad binaria.
-\item Repositorio con una orden reproducible.
-\end{itemize}
-\end{columns}
-\vspace{0.6cm}
+\vspace{0.2cm}
 \begin{center}\Large\color{azul}\textbf{¡Gracias!}\end{center}
 \end{frame}
 

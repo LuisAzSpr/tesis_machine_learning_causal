@@ -1,77 +1,56 @@
-\chapter{Antecedentes y estado del arte}\label{cap:estado}
+\chapter{Revisión de antecedentes teóricos y experimentales}\label{cap:estado}
 
-Este capítulo resume una revisión focalizada y documentada, no una revisión sistemática PRISMA. Las cadenas de búsqueda, las fuentes y los criterios están en el anexo~\ref{anx:busqueda}. Se organiza en cinco frentes, del más cercano al más general:
-\begin{enumerate}[label=(\roman*)]
-\item los antecedentes peruanos sobre el precio de la vivienda;
-\item la cochera como atributo residencial y su contexto en Lima;
-\item el paso del aprendizaje automático predictivo al causal;
-\item el uso de avisos en línea y de su texto como fuente de datos;
-\item la síntesis y el vacío que aborda esta tesis.
-\end{enumerate}
-Las afirmaciones de originalidad se limitan a las fuentes consultadas.
+Se trata de una revisión focalizada y documentada, no de una revisión sistemática. Las cadenas de búsqueda y las fuentes están en el anexo~\ref{anx:busqueda}. Las afirmaciones de originalidad se limitan a las fuentes consultadas.
 
-\section{Marco de referencia: precios hedónicos}
+\section{Antecedentes teóricos}\label{sec:ant_teo}
 
-\citet{rosen1974} formalizó la idea de que el precio de un bien diferenciado depende de sus atributos y de que la derivada de esa función respecto de un atributo es su precio implícito. El modelo hedónico se convirtió en la herramienta estándar para valorar atributos de la vivienda \citep{malpezzi2003}. La revisión de \citet{sirmans2005} muestra, sin embargo, que el coeficiente de un mismo atributo varía mucho entre estudios según qué otras variables se controlen. Un precio implícito es \emph{condicional a la especificación}: no indica por sí mismo cuánto cambiaría el precio si se modificara el atributo. Esa distinción entre asociación y efecto organiza todo el capítulo.
+\paragraph{Precios hedónicos.} Según \citet{rosen1974}, el precio de un bien diferenciado depende de sus atributos, y la derivada respecto de un atributo es su precio implícito. Es la herramienta estándar para valorar atributos de la vivienda \citep{malpezzi2003}. Sin embargo, \citet{sirmans2005} muestran que el coeficiente de un mismo atributo varía mucho según qué se controle: un precio implícito es \emph{condicional a la especificación}, no un efecto.
 
-\section{Antecedentes peruanos}\label{sec:peru}
+\paragraph{Inferencia causal.} El marco de resultados potenciales \citep{imbens2015,hernan2020} define el efecto como la diferencia entre los precios que tendría el mismo departamento con y sin el atributo, de los cuales solo uno se observa. El criterio \textit{back-door} \citep{pearl2009} indica qué variables ajustar, y \citet{cinelli2024} cuáles \emph{no}: mediadores, colisionadores y descendientes del resultado. Sin una fuente de variación casi aleatoria, como las discontinuidades en fronteras \citep{black1999,keele2015} o los cambios regulatorios \citep{chay2005}, se ajusta por los confusores observados bajo ignorabilidad condicional.
 
-\paragraph{Índices hedónicos.} \citet{mundaca2018}, del BCRP, construyen un índice de precios de departamentos \emph{en venta} para diez distritos de Lima (unos 30\,000 avisos, 2008--2016). En sus regresiones semilogarítmicas, el número de cocheras y el de baños son las características con mayor valoración por unidad. Su objetivo es el índice, no identificar efectos. Los propios autores reportan variables omitidas en sus modelos y señalan como principal limitación la falta de un buen indicador de ubicación. \citet{mayo2017} elabora en la Universidad Nacional de Ingeniería un índice hedónico de viviendas \emph{nuevas} con datos del Fondo MiVivienda (2001--2015), y \citet{rivera2018} estudia los determinantes del precio por metro cuadrado (2005--2017). Los tres trabajan con precios de venta y modelos lineales.
+\paragraph{Double Machine Learning.} \citet{chernozhukov2018} muestran que, si las funciones auxiliares se estiman con aprendizaje automático, se usa un score ortogonal y se aplica \textit{cross-fitting}, el efecto es consistente y admite inferencia válida. Para tratamientos binarios, la versión interactiva (IRM/AIPW) es doblemente robusta. El modelo parcialmente lineal proviene de \citet{robinson1988} y está implementado en DoubleML \citep{bach2022}. El marco es sensible a los malos controles \citep{hunermund2023}, y los efectos heterogéneos \citep{wager2018,athey2019} son frágiles en muestras moderadas \citep{knaus2021}.
 
-\paragraph{Aprendizaje automático predictivo.} \citet{cacnahuaray2024} predicen el alquiler de departamentos en la provincia de Lima con 3\,675 avisos de 2023 y técnicas de AutoML. Entre los predictores más importantes que reportan están el área y el número de cocheras. \citet{barrientos2026} comparan árboles de decisión y XGBoost con la regresión hedónica sobre más de 40\,000 registros del BCRP (2014--2024) e identifican el tamaño, la cochera y la ubicación como los determinantes principales. Ambos confirman que la cochera es relevante para \emph{predecir} el precio en Lima, pero no estiman cuánto lo cambia.
+\paragraph{Robustez.} \citet{cinelli2020} y \citet{chernozhukov2022} acotan el sesgo por confusores omitidos y lo calibran con confusores observados; \citet{vanderweele2017} proponen el \textit{E-value}. \citet{moran1950} y \citet{cameron2015} aportan las herramientas de dependencia espacial e inferencia agrupada. \citet{advani2019} recomiendan validar los estimadores con simulaciones ancladas en los datos reales.
 
-\paragraph{Inferencia causal sobre vivienda en Lima.} El único antecedente local con una estrategia de identificación explícita es \citet{contreras2024}. Con diferencias en diferencias, aprovechan la apertura escalonada de la Línea 1 del Metro para estimar su efecto sobre la informalidad de la vivienda. Su variable de interés no es el precio, pero muestra que el razonamiento causal ya se aplica a la vivienda limeña.
+\paragraph{Medición con modelos de lenguaje.} \citet{egami2023} demuestran que usar etiquetas de un modelo de lenguaje directamente en un análisis estadístico produce sesgo e intervalos inválidos, incluso con un 80--90\,\% de acierto. Proponen combinarlas con una muestra etiquetada por personas mediante un estimador doblemente robusto, lo que justifica la validación humana de esta tesis.
 
-\section{La cochera como atributo residencial}\label{sec:cochera_lit}
+\section{Antecedentes experimentales}\label{sec:ant_exp}
 
-\paragraph{Evidencia sobre su valor en alquileres.} La referencia más directa por el tipo de tratamiento es \citet{gabbe2017}. Con más de 38\,000 viviendas en alquiler de áreas metropolitanas de Estados Unidos, estiman que una cochera incluida en el alquiler eleva la renta en alrededor de 17\,\%. \citet{manville2013} encuentra en Los Ángeles que la cochera incluida añade unos 200 dólares mensuales al alquiler. Ambos estudian mercados con una tenencia de automóviles muy superior a la de Lima, por lo que sirven para contrastar la dirección y el orden de magnitud, no para comparar cifras directamente.
-
-\paragraph{Contexto limeño.} Tres hechos locales son relevantes para interpretar el valor de la cochera en Lima:
+\paragraph{Estudios peruanos.}\label{sec:peru}
 \begin{itemize}[leftmargin=*]
-\item \textbf{Regulación.} En los distritos centrales, la normativa municipal fija un número mínimo de estacionamientos por unidad de vivienda: Miraflores lo hace en el artículo 10 de la Ordenanza 342-MM \citep{miraflores2011} y San Isidro en la Ordenanza 523-MSI \citep{sanisidro2020}. Ahí la cochera tiende a ser un componente estándar de los edificios nuevos.
-\item \textbf{Mercado.} El índice de referencia del mercado de alquiler, que también usa el BCRP, toma como unidad típica un departamento de 60 o 100\,m² \emph{con un estacionamiento} \citep{urbania2025}.
-\item \textbf{Demanda.} Solo alrededor del 17\,\% de los hogares de Lima y Callao tenía al menos un automóvil en 2015 \citep{limacomovamos2016}, frente a una mayoría en los mercados estadounidenses citados.
+\item \textbf{Índices hedónicos de venta.} \citet{mundaca2018} (BCRP; unos 30\,000 avisos de venta, 2008--2016) encuentran que el número de cocheras y el de baños son lo más valorado por unidad. Reportan variables omitidas y un control de ubicación limitado al distrito. \citet{mayo2017} (UNI) y \citet{rivera2018} construyen índices y determinantes del precio de venta con modelos lineales.
+\item \textbf{Aprendizaje automático predictivo.} \citet{cacnahuaray2024} predicen el alquiler en Lima (3\,675 avisos de 2023) y hallan el área y las cocheras entre los predictores más importantes. \citet{barrientos2026} identifican tamaño, cochera y ubicación como determinantes principales con XGBoost. Ninguno estima cuánto cambia el precio por la cochera.
+\item \textbf{Causalidad.} El único antecedente causal sobre vivienda en Lima que se encontró es \citet{contreras2024}, que estiman el efecto de la Línea 1 del Metro sobre la informalidad con diferencias en diferencias.
 \end{itemize}
-Estos hechos sugieren que el valor de la cochera en Lima debería ser menor que en Estados Unidos y distinto según la zona. Esta tesis lo pone a prueba.
 
-\section{Del aprendizaje automático predictivo al causal}
+\paragraph{El valor de la cochera.} En alquileres de Estados Unidos, la cochera incluida eleva la renta en alrededor de 17\,\% \citep{gabbe2017} o unos 200 dólares mensuales \citep{manville2013}. Son mercados con mucha más tenencia de auto, útiles para contrastar la dirección, no las cifras. En Lima hay tres hechos relevantes:
+\begin{itemize}[leftmargin=*]
+\item las ordenanzas de Miraflores y San Isidro exigen un número mínimo de estacionamientos por vivienda \citep{miraflores2011,sanisidro2020};
+\item el índice de referencia del mercado de alquiler toma como unidad típica un departamento \emph{con} estacionamiento \citep{urbania2025};
+\item solo alrededor del 17\,\% de los hogares de Lima y Callao tenía automóvil en 2015 \citep{limacomovamos2016}.
+\end{itemize}
+Todo ello sugiere una prima menor que en Estados Unidos y distinta según la zona.
 
-\paragraph{Predicción.} Además de los estudios peruanos, la literatura internacional usa el aprendizaje automático para valuar inmuebles. \citet{tapia2025} comparan modelos automáticos de valuación con hedónicos espaciales en Santiago de Chile. \citet{gyger2026} combinan un proceso gaussiano espacial con \textit{tree boosting} para modelar alquileres en Alemania. Estos trabajos mejoran la predicción, pero las importancias de variables o los valores SHAP describen cómo usa el modelo cada variable, no el efecto de intervenirla.
-
-\paragraph{Identificación causal en vivienda.} La economía urbana estima el valor de amenidades con diseños cuasiexperimentales, como discontinuidades en fronteras \citep{black1999,keele2015} o cambios regulatorios \citep{chay2005}. Cuando no hay una fuente de variación casi aleatoria, como ocurre con la cochera de un departamento, la alternativa es ajustar por los confusores observados bajo ignorabilidad condicional y acotar el sesgo por confusores omitidos.
-
-\paragraph{Double Machine Learning.} \citet{chernozhukov2018} muestran que, si se estiman las funciones auxiliares con aprendizaje automático, se ortogonaliza el problema y se usa \textit{cross-fitting}, el efecto es consistente y admite inferencia válida. Para tratamientos binarios, la versión interactiva (IRM/AIPW) es doblemente robusta. El marco tiene limitaciones conocidas. \citet{hunermund2023} muestran que DML es muy sensible a la inclusión de malos controles, y \citet{cinelli2024} sistematizan qué variables deben y no deben ajustarse. \citet{wager2018} y \citet{athey2019} extienden el enfoque a efectos heterogéneos, cuya estimación es frágil en muestras moderadas \citep{knaus2021}.
-
-\paragraph{Robustez y validación.} \citet{cinelli2020} y \citet{chernozhukov2022} formulan cotas de sesgo por confusores omitidos que se calibran con confusores observados. \citet{moran1950} y \citet{cameron2015} proveen herramientas para la dependencia espacial y la inferencia agrupada. \citet{advani2019} recomiendan validar los estimadores con simulaciones ancladas en los datos reales, y \citet{chen2026} lo hacen al comparar regresiones hedónicas y aprendizaje causal en vivienda.
-
-\section{Avisos en línea y su texto como fuente de datos}
-
-\paragraph{Avisos como datos.} \citet{boeing2017} muestran que los avisos de alquiler extraídos por \textit{web scraping} permiten estudiar mercados de alquiler a gran escala. También advierten que exigen limpieza, deduplicación y cuidado al interpretarlos como precios de oferta.
-
-\paragraph{Información en el texto.} \citet{nowak2017} encuentran que el texto libre de los avisos reduce en más de 25\,\% el error de precio de un modelo hedónico, y \citet{shen2021} que la información ``blanda'' de la descripción tiene un valor significativo en el precio. Los atributos relevantes no siempre están en los campos estructurados.
-
-\paragraph{Modelos de lenguaje para medir atributos.} \citet{faxvaag2026} usan modelos GPT para extraer de los avisos de Oslo variables cuantitativas, entre ellas el estacionamiento, e incorporarlas a un modelo de valuación. Es el precedente metodológico más cercano a la medición de la cochera de esta tesis. \citet{egami2023} advierten que usar etiquetas producidas por un modelo de lenguaje directamente en un análisis estadístico produce sesgo e intervalos inválidos, incluso con un 80--90\,\% de acierto. Proponen combinarlas con una muestra etiquetada por personas mediante un estimador doblemente robusto, lo que justifica la validación humana prevista en esta tesis.
+\paragraph{Aprendizaje automático y avisos.} \citet{tapia2025} y \citet{gyger2026} usan el ML para valuar inmuebles. Las importancias de variables describen la predicción, no el efecto de intervenir. \citet{chen2026} comparan hedónico y ML causal con simulaciones ancladas en datos reales. \citet{boeing2017} muestran el valor y los riesgos de los avisos obtenidos por \textit{scraping}. \citet{nowak2017} y \citet{shen2021}, que el texto contiene información de precio que no está en los campos estructurados. \citet{faxvaag2026} extraen el estacionamiento de avisos con GPT, el precedente más cercano a la medición de esta tesis.
 
 \section{Síntesis y vacío}
 
 \begin{table}[H]
 \centering\small
 \caption{Cuadro comparativo de antecedentes}\label{tab:comparativo}
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{2.5cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.6cm}}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.7cm}>{\raggedright\arraybackslash}p{2.4cm}X>{\raggedright\arraybackslash}p{2.5cm}}
 \toprule
-Trabajo & Objeto / datos & Qué aporta y límite & Método \\
+Trabajo & Objeto / datos & Aporte y límite & Método \\
 \midrule
-\citet{mundaca2018} & Venta, Lima, 2008--2016 & Cochera y baños, lo más valorado; asociativo, ubicación por distrito & Hedónico \\
-\citet{mayo2017}; \citet{rivera2018} & Venta, Lima & Índice y determinantes del precio/m²; asociativo & Hedónico / regresión \\
-\citet{cacnahuaray2024} & Alquiler, Lima, 2023 & La cochera, entre los predictores más fuertes; no estima efecto & ML predictivo \\
-\citet{barrientos2026} & Venta, Lima (BCRP) & La cochera como determinante clave; predictivo & XGBoost vs. hedónico \\
-\citet{contreras2024} & Informalidad, Lima & Único causal local; no estudia precios & Diferencias en diferencias \\
-\citet{gabbe2017} & Alquiler, EE.\,UU. & Cochera incluida +17\,\% del alquiler; otro mercado & Hedónico \\
-\citet{faxvaag2026} & Avisos, Oslo & Estacionamiento extraído con GPT; objetivo predictivo & LLM + valuación \\
-\citet{egami2023} & Metodológico & Uso válido de etiquetas de LLM con validación humana & DSL (doblemente robusto) \\
-\textbf{Esta tesis} & \textbf{Alquiler, Lima, 2025} & \textbf{Efecto causal de la cochera medida con IA, con soporte común y sensibilidad} & \textbf{DML-IRM + validación semisintética} \\
+\citet{mundaca2018} & Venta, Lima & Cochera y baños, lo más valorado; asociativo & Hedónico \\
+\citet{cacnahuaray2024} & Alquiler, Lima & Cochera, predictor fuerte; no estima efecto & ML predictivo \\
+\citet{barrientos2026} & Venta, Lima & Cochera, determinante clave; predictivo & XGBoost \\
+\citet{contreras2024} & Informalidad, Lima & Único causal local; no estudia precios & DiD \\
+\citet{gabbe2017} & Alquiler, EE.\,UU. & Cochera incluida +17\,\%; otro mercado & Hedónico \\
+\citet{faxvaag2026} & Avisos, Oslo & Estacionamiento extraído con GPT; predictivo & LLM \\
+\textbf{Esta tesis} & \textbf{Alquiler, Lima} & \textbf{Efecto causal de la cochera medida con IA} & \textbf{DML-IRM} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-La tabla~\ref{tab:comparativo} resume la posición de la tesis. Los estudios peruanos coinciden en que la cochera es un atributo relevante del precio, pero la abordan con modelos asociativos o predictivos y sobre precios de venta. La literatura internacional ofrece evidencia sobre el valor de la cochera en alquileres y herramientas para estimar efectos causales y medir atributos desde el texto. En las fuentes consultadas no se encontró un estudio sobre Lima que combine las tres piezas: estimar causalmente el valor de un atributo del alquiler, medir ese atributo desde el texto con IA y acotar la fragilidad del resultado. Ese es el espacio en que se sitúa esta tesis.
+En síntesis, la literatura peruana confirma que la cochera es relevante, y la literatura teórica ofrece las herramientas para estimar su efecto causal, acotar su fragilidad y medirla con IA. En las fuentes consultadas no se encontró un estudio sobre Lima que combine estimar causalmente el valor de un atributo del alquiler, medirlo desde el texto con IA y acotar la fragilidad del resultado.
